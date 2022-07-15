@@ -1,1 +1,1 @@
-CMakeLists.txt not found in /home/linkstart/LinkStart/POSIX_mmap Select CMakeLists.txt
+CMakeLists.txt not found in /home/riki/Linkstart_demo/LinkStart/POSIX_mmap Select CMakeLists.txt

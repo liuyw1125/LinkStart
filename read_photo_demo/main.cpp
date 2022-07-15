@@ -16,16 +16,16 @@ typedef struct
     char buff[];
 }sharedmemory;
 
-#define SHARED_PHOTO_ORIGIN "/home/linkstart/CLionProjects/read_photo_demo/qq.jpeg"
+#define SHARED_PHOTO_ORIGIN "/home/riki/Linkstart_demo/LinkStart/read_photo_demo/qq.jpeg"
 
 int main()
 {
     int read_dev_shm = shm_open("qq_photo", O_RDONLY,0666);
     struct stat buff;
     if (fstat(read_dev_shm, &buff) == -1)
-        printf("fstat\n");
+        printf("fstat error\n");
 
-    printf("size=%ld mode= %o\n", buff.st_size, buff.st_mode & 07777);
+    printf("size=%ld\n", buff.st_size, buff.st_mode);
     ftruncate(read_dev_shm, buff.st_size);
     sharedmemory * Shm_Pthoto = (sharedmemory *)malloc(buff.st_size);
     if (Shm_Pthoto == NULL)
@@ -36,11 +36,14 @@ int main()
 
     sharedmemory * read_mmap = (sharedmemory * )mmap(NULL, buff.st_size,
                     PROT_READ, MAP_SHARED, read_dev_shm, 0);
-    (*Shm_Pthoto)=(*read_mmap);
-    int save = open("SHARED_PHOTO_ORIGIN", O_CREAT | O_WRONLY, 0666);
+    //(*Shm_Pthoto)=(*read_mmap); //This is wrong
+    memcpy(Shm_Pthoto, read_mmap, buff.st_size);
+
+    int save = open(SHARED_PHOTO_ORIGIN, O_CREAT | O_RDWR, 0666);
     write(save,Shm_Pthoto->buff,buff.st_size - sizeof(Shm_Pthoto->mutex));
     close(save);
-    printf("getchar\n");
+
+    printf("getchar pause\n");
     getchar();
     free(Shm_Pthoto);
     Shm_Pthoto = NULL;
