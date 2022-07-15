@@ -1,0 +1,32 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/linkstart/CLionProjects/copy_photo_demo/main.cpp
+sys/mman.h
+-
+sys/stat.h
+-
+fcntl.h
+-
+stdlib.h
+-
+string.h
+-
+stdio.h
+-
+sys/types.h
+-
+unistd.h
+-
+malloc.h
+-
+pthread.h
+-
+assert.h
+-
+

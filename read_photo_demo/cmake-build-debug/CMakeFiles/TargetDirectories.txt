@@ -1,0 +1,3 @@
+/home/linkstart/CLionProjects/read_photo_demo/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/linkstart/CLionProjects/read_photo_demo/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/linkstart/CLionProjects/read_photo_demo/cmake-build-debug/CMakeFiles/read_photo_demo.dir
