@@ -16,9 +16,21 @@ typedef struct
     char buff[];
 }sharedmemory;
 
+#define LINUX_2204
+//#define LINUX_1604
+
+#ifdef LINUX_1604
 #define SHARED_PHOTO_ORIGIN "/home/riki/Linkstart_demo/LinkStart/copy_photo_demo/qq.jpeg"
 #define SHARED_PHOTO_TEST "/home/riki/Linkstart_demo/LinkStart/copy_photo_demo/qq_test.jpeg"
 #define SHARED_PHOTO_SHM_TEST "/home/riki/Linkstart_demo/LinkStart/copy_photo_demo/qq_shm_test.jpeg"
+#endif
+
+#ifdef LINUX_2204
+#define SHARED_PHOTO_ORIGIN "/home/linkstart/CLionProjects/copy_photo_demo/qq.jpeg"
+#define SHARED_PHOTO_TEST "/home/linkstart/CLionProjects/copy_photo_demo/qq_test.jpeg"
+#define SHARED_PHOTO_SHM_TEST "/home/linkstart/CLionProjects/copy_photo_demo/qq_shm_test.jpeg"
+#endif
+
 
 int main()
 {
