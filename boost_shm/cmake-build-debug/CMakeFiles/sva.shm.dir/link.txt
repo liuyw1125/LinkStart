@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/sva.shm.dir/src/main.cpp.o -o sva.shm  -lrt 

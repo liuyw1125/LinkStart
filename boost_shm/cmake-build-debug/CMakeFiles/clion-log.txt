@@ -1,0 +1,5 @@
+/opt/clion/clion-2021.1.3/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/linkstart/CLionProjects/boost_shm
+-- Thirdparty/boost compiled OK
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/linkstart/CLionProjects/boost_shm/cmake-build-debug
