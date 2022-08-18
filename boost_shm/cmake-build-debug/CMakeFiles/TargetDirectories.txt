@@ -1,3 +1,0 @@
-/home/linkstart/CLionProjects/boost_shm/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/linkstart/CLionProjects/boost_shm/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/linkstart/CLionProjects/boost_shm/cmake-build-debug/CMakeFiles/sva.shm.dir
