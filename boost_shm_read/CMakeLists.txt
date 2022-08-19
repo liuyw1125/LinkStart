@@ -11,9 +11,9 @@ set(THIRDPARTY_BOOST_INCLUDE_DIR
     FILEPATH
     "Path to thirdparty/boost"
 )
-#set(THIRDPARTY_SHARED_MEMORY_INCLUDE_DIR
-#        ${PROJECT_SOURCE_DIR}/thirdparty/shared_memory
-#        )
+set(LOG_INCLUDE_DIR
+        ${PROJECT_SOURCE_DIR}/src/log/
+        )
 find_package(Threads REQUIRED)
 
 if(WIN32 OR APPLE OR ANDROID OR QNXNTO)
@@ -42,14 +42,21 @@ endif()
 mark_as_advanced(THIRDPARTY_BOOST_INCLUDE_DIR)
 
 include_directories(./src/)
-file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
+file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp
+        ${PROJECT_SOURCE_DIR}/src/log/*.cpp)
 file(GLOB_RECURSE HDR_FILES ${PROJECT_SOURCE_DIR}/src/*.h)
 
 
+
+
 add_executable(${BIN_NAME} ${SRC_FILES} ${HDR_FILES})
+target_compile_definitions(${BIN_NAME} PRIVATE
+        $<$<BOOL:${STDOUTERR_LOG_CONSUMER}>:STDOUTERR_LOG_CONSUMER> # Enable StdoutErrConsumer as default LogConsumer
+        )
 
 target_include_directories(${BIN_NAME} PRIVATE
     ${THIRDPARTY_BOOST_INCLUDE_DIR}
+        ${LOG_INCLUDE_DIR}
 )
 
 
