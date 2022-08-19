@@ -1,3 +1,0 @@
-/home/linkstart/LinkStart/log_test/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/linkstart/LinkStart/log_test/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/linkstart/LinkStart/log_test/cmake-build-debug/CMakeFiles/LogMacrosAllActiveTests.dir

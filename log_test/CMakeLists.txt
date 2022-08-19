@@ -22,4 +22,7 @@ target_compile_definitions(${BIN_NAME}  PRIVATE
         )
 target_include_directories(${BIN_NAME}  PRIVATE
         ${LOG_COMMON_INCLUDE_DIR} )
+target_link_libraries( ${BIN_NAME}
+        ${CMAKE_THREAD_LIBS_INIT} rt pthread
+        )
 
