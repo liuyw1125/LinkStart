@@ -145,22 +145,22 @@ struct bstbase3
    BOOST_INTRUSIVE_FORCEINLINE const_value_traits_ptr priv_value_traits_ptr() const
    {  return pointer_traits<const_value_traits_ptr>::pointer_to(this->get_value_traits());  }
 
-   BOOST_INTRUSIVE_FORCEINLINE iterator begin() BOOST_NOEXCEPT
+   iterator begin()
    {  return iterator(node_algorithms::begin_node(this->header_ptr()), this->priv_value_traits_ptr());   }
 
-   BOOST_INTRUSIVE_FORCEINLINE const_iterator begin() const BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE const_iterator begin() const
    {  return cbegin();   }
 
-   BOOST_INTRUSIVE_FORCEINLINE const_iterator cbegin() const BOOST_NOEXCEPT
+   const_iterator cbegin() const
    {  return const_iterator(node_algorithms::begin_node(this->header_ptr()), this->priv_value_traits_ptr());   }
 
-   BOOST_INTRUSIVE_FORCEINLINE iterator end() BOOST_NOEXCEPT
+   iterator end()
    {  return iterator(node_algorithms::end_node(this->header_ptr()), this->priv_value_traits_ptr());   }
 
-   BOOST_INTRUSIVE_FORCEINLINE const_iterator end() const BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE const_iterator end() const
    {  return cend();  }
 
-   BOOST_INTRUSIVE_FORCEINLINE const_iterator cend() const BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE const_iterator cend() const
    {  return const_iterator(node_algorithms::end_node(this->header_ptr()), this->priv_value_traits_ptr());   }
 
    BOOST_INTRUSIVE_FORCEINLINE iterator root()
@@ -195,32 +195,32 @@ struct bstbase3
       node_algorithms::replace_node( get_value_traits().to_node_ptr(*replace_this)
                                    , this->header_ptr()
                                    , get_value_traits().to_node_ptr(with_this));
-      BOOST_IF_CONSTEXPR(safemode_or_autounlink)
+      if(safemode_or_autounlink)
          node_algorithms::init(replace_this.pointed_node());
    }
 
-   BOOST_INTRUSIVE_FORCEINLINE void rebalance() BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE void rebalance()
    {  node_algorithms::rebalance(this->header_ptr()); }
 
-   iterator rebalance_subtree(iterator r) BOOST_NOEXCEPT
-   {  return iterator(node_algorithms::rebalance_subtree(r.pointed_node()), this->priv_value_traits_ptr()); }
+   iterator rebalance_subtree(iterator root)
+   {  return iterator(node_algorithms::rebalance_subtree(root.pointed_node()), this->priv_value_traits_ptr()); }
 
-   static iterator s_iterator_to(reference value) BOOST_NOEXCEPT
+   static iterator s_iterator_to(reference value)
    {
       BOOST_STATIC_ASSERT((!stateful_value_traits));
       return iterator (value_traits::to_node_ptr(value), const_value_traits_ptr());
    }
 
-   static const_iterator s_iterator_to(const_reference value) BOOST_NOEXCEPT
+   static const_iterator s_iterator_to(const_reference value)
    {
       BOOST_STATIC_ASSERT((!stateful_value_traits));
       return const_iterator (value_traits::to_node_ptr(*pointer_traits<pointer>::const_cast_from(pointer_traits<const_pointer>::pointer_to(value))), const_value_traits_ptr());
    }
 
-   iterator iterator_to(reference value) BOOST_NOEXCEPT
+   iterator iterator_to(reference value)
    {  return iterator (this->get_value_traits().to_node_ptr(value), this->priv_value_traits_ptr()); }
 
-   const_iterator iterator_to(const_reference value) const BOOST_NOEXCEPT
+   const_iterator iterator_to(const_reference value) const
    {  return const_iterator (this->get_value_traits().to_node_ptr(*pointer_traits<pointer>::const_cast_from(pointer_traits<const_pointer>::pointer_to(value))), this->priv_value_traits_ptr()); }
 
    BOOST_INTRUSIVE_FORCEINLINE static void init_node(reference value)
@@ -301,10 +301,10 @@ struct bstbase2
       : detail::ebo_functor_holder<value_compare>(value_compare(comp)), treeheader_t(vtraits)
    {}
 
-   const value_compare &get_comp() const
+   const value_compare &comp() const
    {  return this->get();  }
 
-   value_compare &get_comp()
+   value_compare &comp()
    {  return this->get();  }
 
    typedef BOOST_INTRUSIVE_IMPDEF(typename value_traits::pointer)                               pointer;
@@ -315,10 +315,10 @@ struct bstbase2
    typedef typename node_algorithms::insert_commit_data insert_commit_data;
 
    BOOST_INTRUSIVE_FORCEINLINE value_compare value_comp() const
-   {  return this->get_comp();   }
+   {  return this->comp();   }
 
    BOOST_INTRUSIVE_FORCEINLINE key_compare key_comp() const
-   {  return this->get_comp().key_comp();   }
+   {  return this->comp().key_comp();   }
 
    //lower_bound
    BOOST_INTRUSIVE_FORCEINLINE iterator lower_bound(const key_type &key)
@@ -400,8 +400,8 @@ struct bstbase2
    template<class KeyType, class KeyTypeKeyCompare>
    std::pair<iterator,iterator> equal_range(const KeyType &key, KeyTypeKeyCompare comp)
    {
-      std::pair<node_ptr, node_ptr> ret = 
-         node_algorithms::equal_range(this->header_ptr(), key, this->key_node_comp(comp));
+      std::pair<node_ptr, node_ptr> ret
+         (node_algorithms::equal_range(this->header_ptr(), key, this->key_node_comp(comp)));
       return std::pair<iterator, iterator>( iterator(ret.first, this->priv_value_traits_ptr())
                                           , iterator(ret.second, this->priv_value_traits_ptr()));
    }
@@ -414,8 +414,8 @@ struct bstbase2
    std::pair<const_iterator, const_iterator>
       equal_range(const KeyType &key, KeyTypeKeyCompare comp) const
    {
-      std::pair<node_ptr, node_ptr> ret =
-         node_algorithms::equal_range(this->header_ptr(), key, this->key_node_comp(comp));
+      std::pair<node_ptr, node_ptr> ret
+         (node_algorithms::equal_range(this->header_ptr(), key, this->key_node_comp(comp)));
       return std::pair<const_iterator, const_iterator>( const_iterator(ret.first, this->priv_value_traits_ptr())
                                                       , const_iterator(ret.second, this->priv_value_traits_ptr()));
    }
@@ -427,8 +427,8 @@ struct bstbase2
    template<class KeyType, class KeyTypeKeyCompare>
    std::pair<iterator,iterator> lower_bound_range(const KeyType &key, KeyTypeKeyCompare comp)
    {
-      std::pair<node_ptr, node_ptr> ret =
-         node_algorithms::lower_bound_range(this->header_ptr(), key, this->key_node_comp(comp));
+      std::pair<node_ptr, node_ptr> ret
+         (node_algorithms::lower_bound_range(this->header_ptr(), key, this->key_node_comp(comp)));
       return std::pair<iterator, iterator>( iterator(ret.first, this->priv_value_traits_ptr())
                                           , iterator(ret.second, this->priv_value_traits_ptr()));
    }
@@ -441,8 +441,8 @@ struct bstbase2
    std::pair<const_iterator, const_iterator>
       lower_bound_range(const KeyType &key, KeyTypeKeyCompare comp) const
    {
-      std::pair<node_ptr, node_ptr> ret =
-         node_algorithms::lower_bound_range(this->header_ptr(), key, this->key_node_comp(comp));
+      std::pair<node_ptr, node_ptr> ret
+         (node_algorithms::lower_bound_range(this->header_ptr(), key, this->key_node_comp(comp)));
       return std::pair<const_iterator, const_iterator>( const_iterator(ret.first, this->priv_value_traits_ptr())
                                                       , const_iterator(ret.second, this->priv_value_traits_ptr()));
    }
@@ -456,9 +456,9 @@ struct bstbase2
    std::pair<iterator,iterator> bounded_range
       (const KeyType &lower_key, const KeyType &upper_key, KeyTypeKeyCompare comp, bool left_closed, bool right_closed)
    {
-      std::pair<node_ptr, node_ptr> ret =
-         node_algorithms::bounded_range
-            (this->header_ptr(), lower_key, upper_key, this->key_node_comp(comp), left_closed, right_closed);
+      std::pair<node_ptr, node_ptr> ret
+         (node_algorithms::bounded_range
+            (this->header_ptr(), lower_key, upper_key, this->key_node_comp(comp), left_closed, right_closed));
       return std::pair<iterator, iterator>( iterator(ret.first, this->priv_value_traits_ptr())
                                           , iterator(ret.second, this->priv_value_traits_ptr()));
    }
@@ -471,9 +471,9 @@ struct bstbase2
    std::pair<const_iterator,const_iterator> bounded_range
       (const KeyType &lower_key, const KeyType &upper_key, KeyTypeKeyCompare comp, bool left_closed, bool right_closed) const
    {
-      std::pair<node_ptr, node_ptr> ret =
-         node_algorithms::bounded_range
-            (this->header_ptr(), lower_key, upper_key, this->key_node_comp(comp), left_closed, right_closed);
+      std::pair<node_ptr, node_ptr> ret
+         (node_algorithms::bounded_range
+            (this->header_ptr(), lower_key, upper_key, this->key_node_comp(comp), left_closed, right_closed));
       return std::pair<const_iterator, const_iterator>( const_iterator(ret.first, this->priv_value_traits_ptr())
                                                       , const_iterator(ret.second, this->priv_value_traits_ptr()));
    }
@@ -735,7 +735,7 @@ class bstree_impl
    //!   move constructor throws (this does not happen with predefined Boost.Intrusive hooks)
    //!   or the move constructor of the comparison objet throws.
    bstree_impl(BOOST_RV_REF(bstree_impl) x)
-      : data_type(::boost::move(x.get_comp()), ::boost::move(x.get_value_traits()))
+      : data_type(::boost::move(x.comp()), ::boost::move(x.get_value_traits()))
    {
       this->swap(x);
    }
@@ -761,42 +761,42 @@ class bstree_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   iterator begin() BOOST_NOEXCEPT;
+   iterator begin();
 
    //! <b>Effects</b>: Returns a const_iterator pointing to the beginning of the container.
    //!
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   const_iterator begin() const BOOST_NOEXCEPT;
+   const_iterator begin() const;
 
    //! <b>Effects</b>: Returns a const_iterator pointing to the beginning of the container.
    //!
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   const_iterator cbegin() const BOOST_NOEXCEPT;
+   const_iterator cbegin() const;
 
    //! <b>Effects</b>: Returns an iterator pointing to the end of the container.
    //!
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   iterator end() BOOST_NOEXCEPT;
+   iterator end();
 
    //! <b>Effects</b>: Returns a const_iterator pointing to the end of the container.
    //!
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   const_iterator end() const BOOST_NOEXCEPT;
+   const_iterator end() const;
 
    //! <b>Effects</b>: Returns a const_iterator pointing to the end of the container.
    //!
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   const_iterator cend() const BOOST_NOEXCEPT;
+   const_iterator cend() const;
 
    //! <b>Effects</b>: Returns a reverse_iterator pointing to the beginning of the
    //!    reversed container.
@@ -804,7 +804,7 @@ class bstree_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   reverse_iterator rbegin() BOOST_NOEXCEPT;
+   reverse_iterator rbegin();
 
    //! <b>Effects</b>: Returns a const_reverse_iterator pointing to the beginning
    //!    of the reversed container.
@@ -812,7 +812,7 @@ class bstree_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   const_reverse_iterator rbegin() const BOOST_NOEXCEPT;
+   const_reverse_iterator rbegin() const;
 
    //! <b>Effects</b>: Returns a const_reverse_iterator pointing to the beginning
    //!    of the reversed container.
@@ -820,7 +820,7 @@ class bstree_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   const_reverse_iterator crbegin() const BOOST_NOEXCEPT;
+   const_reverse_iterator crbegin() const;
 
    //! <b>Effects</b>: Returns a reverse_iterator pointing to the end
    //!    of the reversed container.
@@ -828,7 +828,7 @@ class bstree_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   reverse_iterator rend() BOOST_NOEXCEPT;
+   reverse_iterator rend();
 
    //! <b>Effects</b>: Returns a const_reverse_iterator pointing to the end
    //!    of the reversed container.
@@ -836,7 +836,7 @@ class bstree_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   const_reverse_iterator rend() const BOOST_NOEXCEPT;
+   const_reverse_iterator rend() const;
 
    //! <b>Effects</b>: Returns a const_reverse_iterator pointing to the end
    //!    of the reversed container.
@@ -844,28 +844,28 @@ class bstree_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   const_reverse_iterator crend() const BOOST_NOEXCEPT;
+   const_reverse_iterator crend() const;
 
    //! <b>Effects</b>: Returns a iterator pointing to the root node of the container or end() if not present.
    //!
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   iterator root() BOOST_NOEXCEPT;
+   iterator root();
 
    //! <b>Effects</b>: Returns a const_iterator pointing to the root node of the container or cend() if not present.
    //!
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   const_iterator root() const BOOST_NOEXCEPT;
+   const_iterator root() const;
 
    //! <b>Effects</b>: Returns a const_iterator pointing to the root node of the container or cend() if not present.
    //!
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   const_iterator croot() const BOOST_NOEXCEPT;
+   const_iterator croot() const;
 
    #endif   //#ifdef BOOST_INTRUSIVE_DOXYGEN_INVOKED
 
@@ -877,7 +877,7 @@ class bstree_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   static bstree_impl &container_from_end_iterator(iterator end_iterator) BOOST_NOEXCEPT
+   static bstree_impl &container_from_end_iterator(iterator end_iterator)
    {
       return static_cast<bstree_impl&>
                (data_type::get_tree_base_from_end_iterator(end_iterator));
@@ -891,7 +891,7 @@ class bstree_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   static const bstree_impl &container_from_end_iterator(const_iterator end_iterator) BOOST_NOEXCEPT
+   static const bstree_impl &container_from_end_iterator(const_iterator end_iterator)
    {
       return static_cast<bstree_impl&>
                (data_type::get_tree_base_from_end_iterator(end_iterator));
@@ -905,7 +905,7 @@ class bstree_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Logarithmic.
-   static bstree_impl &container_from_iterator(iterator it) BOOST_NOEXCEPT
+   static bstree_impl &container_from_iterator(iterator it)
    {  return container_from_end_iterator(it.end_iterator_from_it());   }
 
    //! <b>Precondition</b>: it must be a valid end const_iterator
@@ -916,7 +916,7 @@ class bstree_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Logarithmic.
-   static const bstree_impl &container_from_iterator(const_iterator it) BOOST_NOEXCEPT
+   static const bstree_impl &container_from_iterator(const_iterator it)
    {  return container_from_end_iterator(it.end_iterator_from_it());   }
 
    #ifdef BOOST_INTRUSIVE_DOXYGEN_INVOKED
@@ -942,7 +942,7 @@ class bstree_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   bool empty() const BOOST_NOEXCEPT
+   bool empty() const
    {
       if(ConstantTimeSize){
          return !this->data_type::sz_traits().get_size();
@@ -958,9 +958,9 @@ class bstree_impl
    //!   if constant-time size option is disabled. Constant time otherwise.
    //!
    //! <b>Throws</b>: Nothing.
-   size_type size() const BOOST_NOEXCEPT
+   size_type size() const
    {
-      BOOST_IF_CONSTEXPR(constant_time_size)
+      if(constant_time_size)
          return this->sz_traits().get_size();
       else{
          return (size_type)node_algorithms::size(this->header_ptr());
@@ -975,7 +975,7 @@ class bstree_impl
    void swap(bstree_impl& other)
    {
       //This can throw
-      ::boost::adl_move_swap(this->get_comp(), other.get_comp());
+      ::boost::adl_move_swap(this->comp(), other.comp());
       //These can't throw
       node_algorithms::swap_tree(this->header_ptr(), node_ptr(other.header_ptr()));
       this->sz_traits().swap(other.sz_traits());
@@ -1008,7 +1008,7 @@ class bstree_impl
             ,detail::node_cloner <Cloner,    value_traits, AlgoType>(cloner,   &this->get_value_traits())
             ,detail::node_disposer<Disposer, value_traits, AlgoType>(disposer, &this->get_value_traits()));
          this->sz_traits().set_size(src.sz_traits().get_size());
-         this->get_comp() = src.get_comp();
+         this->comp() = src.comp();
          rollback.release();
       }
    }
@@ -1043,7 +1043,7 @@ class bstree_impl
             ,detail::node_cloner <Cloner,    value_traits, AlgoType, false>(cloner,   &this->get_value_traits())
             ,detail::node_disposer<Disposer, value_traits, AlgoType>(disposer, &this->get_value_traits()));
          this->sz_traits().set_size(src.sz_traits().get_size());
-         this->get_comp() = src.get_comp();
+         this->comp() = src.comp();
          rollback.release();
       }
    }
@@ -1062,7 +1062,8 @@ class bstree_impl
    iterator insert_equal(reference value)
    {
       node_ptr to_insert(this->get_value_traits().to_node_ptr(value));
-      BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || node_algorithms::unique(to_insert));
+      if(safemode_or_autounlink)
+         BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(node_algorithms::unique(to_insert));
       iterator ret(node_algorithms::insert_equal_upper_bound
          (this->header_ptr(), to_insert, this->key_node_comp(this->key_comp())), this->priv_value_traits_ptr());
       this->sz_traits().increment();
@@ -1086,7 +1087,8 @@ class bstree_impl
    iterator insert_equal(const_iterator hint, reference value)
    {
       node_ptr to_insert(this->get_value_traits().to_node_ptr(value));
-      BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || node_algorithms::unique(to_insert));
+      if(safemode_or_autounlink)
+         BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(node_algorithms::unique(to_insert));
       iterator ret(node_algorithms::insert_equal
          (this->header_ptr(), hint.pointed_node(), to_insert, this->key_node_comp(this->key_comp())), this->priv_value_traits_ptr());
       this->sz_traits().increment();
@@ -1103,7 +1105,7 @@ class bstree_impl
    //!   size of the range. However, it is linear in N if the range is already sorted
    //!   by value_comp().
    //!
-   //! <b>Throws</b>: If the comparison functor call throws.
+   //! <b>Throws</b>: Nothing.
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    //!   No copy-constructors are called.
@@ -1123,7 +1125,7 @@ class bstree_impl
    //! <b>Complexity</b>: Average complexity for insert element is at
    //!   most logarithmic.
    //!
-   //! <b>Throws</b>: If the comparison functor call throws.
+   //! <b>Throws</b>: Nothing.
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    //!   No copy-constructors are called.
@@ -1149,7 +1151,7 @@ class bstree_impl
    //!   constant time (two comparisons in the worst case)
    //!   if t is inserted immediately before hint.
    //!
-   //! <b>Throws</b>: If the comparison functor call throws.
+   //! <b>Throws</b>: Nothing.
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    //!   No copy-constructors are called.
@@ -1172,7 +1174,7 @@ class bstree_impl
    //!   size of the range. However, it is linear in N if the range is already sorted
    //!   by value_comp().
    //!
-   //! <b>Throws</b>: If the comparison functor call throws.
+   //! <b>Throws</b>: Nothing.
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    //!   No copy-constructors are called.
@@ -1312,10 +1314,11 @@ class bstree_impl
    //! <b>Notes</b>: This function has only sense if a "insert_check" has been
    //!   previously executed to fill "commit_data". No value should be inserted or
    //!   erased between the "insert_check" and "insert_commit" calls.
-   iterator insert_unique_commit(reference value, const insert_commit_data &commit_data) BOOST_NOEXCEPT
+   iterator insert_unique_commit(reference value, const insert_commit_data &commit_data)
    {
       node_ptr to_insert(this->get_value_traits().to_node_ptr(value));
-      BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || node_algorithms::unique(to_insert));
+      if(safemode_or_autounlink)
+         BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(node_algorithms::unique(to_insert));
 
       #if !(defined(BOOST_DISABLE_ASSERTS) || ( defined(BOOST_ENABLE_ASSERT_DEBUG_HANDLER) && defined(NDEBUG) ))
       //Test insertion position is correct
@@ -1325,8 +1328,8 @@ class bstree_impl
       }
       //Check if the insertion point is correct to detect wrong
       //uses insert_unique_check
-      BOOST_ASSERT(( p == this->end()   || !this->get_comp()(*p, value)   ));
-      BOOST_ASSERT(( p == this->begin() || !this->get_comp()(value, *--p) ));
+      BOOST_ASSERT(( p == this->end()   || !this->comp()(*p, value)   ));
+      BOOST_ASSERT(( p == this->begin() || !this->comp()(value, *--p) ));
       #endif
 
       node_algorithms::insert_unique_commit
@@ -1349,10 +1352,11 @@ class bstree_impl
    //! the successor of "value" container ordering invariant will be broken.
    //! This is a low-level function to be used only for performance reasons
    //! by advanced users.
-   iterator insert_before(const_iterator pos, reference value) BOOST_NOEXCEPT
+   iterator insert_before(const_iterator pos, reference value)
    {
       node_ptr to_insert(this->get_value_traits().to_node_ptr(value));
-      BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || node_algorithms::unique(to_insert));
+      if(safemode_or_autounlink)
+         BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(node_algorithms::unique(to_insert));
       this->sz_traits().increment();
       return iterator(node_algorithms::insert_before
          (this->header_ptr(), pos.pointed_node(), to_insert), this->priv_value_traits_ptr());
@@ -1372,10 +1376,11 @@ class bstree_impl
    //!   This function is slightly more efficient than using "insert_before".
    //!   This is a low-level function to be used only for performance reasons
    //!   by advanced users.
-   void push_back(reference value) BOOST_NOEXCEPT
+   void push_back(reference value)
    {
       node_ptr to_insert(this->get_value_traits().to_node_ptr(value));
-      BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || node_algorithms::unique(to_insert));
+      if(safemode_or_autounlink)
+         BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(node_algorithms::unique(to_insert));
       this->sz_traits().increment();
       node_algorithms::push_back(this->header_ptr(), to_insert);
    }
@@ -1394,10 +1399,11 @@ class bstree_impl
    //!   This function is slightly more efficient than using "insert_before".
    //!   This is a low-level function to be used only for performance reasons
    //!   by advanced users.
-   void push_front(reference value) BOOST_NOEXCEPT
+   void push_front(reference value)
    {
       node_ptr to_insert(this->get_value_traits().to_node_ptr(value));
-      BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || node_algorithms::unique(to_insert));
+      if(safemode_or_autounlink)
+         BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(node_algorithms::unique(to_insert));
       this->sz_traits().increment();
       node_algorithms::push_front(this->header_ptr(), to_insert);
    }
@@ -1410,15 +1416,16 @@ class bstree_impl
    //!
    //! <b>Note</b>: Invalidates the iterators (but not the references)
    //!    to the erased elements. No destructors are called.
-   iterator erase(const_iterator i) BOOST_NOEXCEPT
+   iterator erase(const_iterator i)
    {
       const_iterator ret(i);
       ++ret;
       node_ptr to_erase(i.pointed_node());
-      BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || !node_algorithms::unique(to_erase));
+      if(safemode_or_autounlink)
+         BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!node_algorithms::unique(to_erase));
       node_algorithms::erase(this->header_ptr(), to_erase);
       this->sz_traits().decrement();
-      BOOST_IF_CONSTEXPR(safemode_or_autounlink)
+      if(safemode_or_autounlink)
          node_algorithms::init(to_erase);
       return ret.unconst();
    }
@@ -1432,7 +1439,7 @@ class bstree_impl
    //!
    //! <b>Note</b>: Invalidates the iterators (but not the references)
    //!    to the erased elements. No destructors are called.
-   iterator erase(const_iterator b, const_iterator e) BOOST_NOEXCEPT
+   iterator erase(const_iterator b, const_iterator e)
    {  size_type n;   return this->private_erase(b, e, n);   }
 
    //! <b>Effects</b>: Erases all the elements with the given value.
@@ -1445,7 +1452,7 @@ class bstree_impl
    //!
    //! <b>Note</b>: Invalidates the iterators (but not the references)
    //!    to the erased elements. No destructors are called.
-   size_type erase(const key_type &key) BOOST_NOEXCEPT
+   size_type erase(const key_type &key)
    {  return this->erase(key, this->key_comp());   }
 
    //! <b>Requires</b>: key is a value such that `*this` is partitioned with respect to
@@ -1486,7 +1493,7 @@ class bstree_impl
    //! <b>Note</b>: Invalidates the iterators
    //!    to the erased elements.
    template<class Disposer>
-   iterator erase_and_dispose(const_iterator i, Disposer disposer) BOOST_NOEXCEPT
+   iterator erase_and_dispose(const_iterator i, Disposer disposer)
    {
       node_ptr to_erase(i.pointed_node());
       iterator ret(this->erase(i));
@@ -1529,7 +1536,7 @@ class bstree_impl
    //! <b>Note</b>: Invalidates the iterators
    //!    to the erased elements.
    template<class Disposer>
-   iterator erase_and_dispose(const_iterator b, const_iterator e, Disposer disposer) BOOST_NOEXCEPT
+   iterator erase_and_dispose(const_iterator b, const_iterator e, Disposer disposer)
    {  size_type n;   return this->private_erase(b, e, n, disposer);   }
 
    //! <b>Requires</b>: key is a value such that `*this` is partitioned with respect to
@@ -1570,9 +1577,9 @@ class bstree_impl
    //!
    //! <b>Note</b>: Invalidates the iterators (but not the references)
    //!    to the erased elements. No destructors are called.
-   void clear() BOOST_NOEXCEPT
+   void clear()
    {
-      BOOST_IF_CONSTEXPR(safemode_or_autounlink){
+      if(safemode_or_autounlink){
          this->clear_and_dispose(detail::null_disposer());
       }
       else{
@@ -1591,7 +1598,7 @@ class bstree_impl
    //! <b>Note</b>: Invalidates the iterators (but not the references)
    //!    to the erased elements. Calls N times to disposer functor.
    template<class Disposer>
-   void clear_and_dispose(Disposer disposer) BOOST_NOEXCEPT
+   void clear_and_dispose(Disposer disposer)
    {
       node_algorithms::clear_and_dispose(this->header_ptr()
          , detail::node_disposer<Disposer, value_traits, AlgoType>(disposer, &this->get_value_traits()));
@@ -1834,7 +1841,7 @@ class bstree_impl
    //!
    //! <b>Note</b>: This static function is available only if the <i>value traits</i>
    //!   is stateless.
-   static iterator s_iterator_to(reference value) BOOST_NOEXCEPT;
+   static iterator s_iterator_to(reference value);
 
    //! <b>Requires</b>: value must be an lvalue and shall be in a set of
    //!   appropriate type. Otherwise the behavior is undefined.
@@ -1848,7 +1855,7 @@ class bstree_impl
    //!
    //! <b>Note</b>: This static function is available only if the <i>value traits</i>
    //!   is stateless.
-   static const_iterator s_iterator_to(const_reference value) BOOST_NOEXCEPT;
+   static const_iterator s_iterator_to(const_reference value);
 
    //! <b>Requires</b>: value must be an lvalue and shall be in a set of
    //!   appropriate type. Otherwise the behavior is undefined.
@@ -1859,7 +1866,7 @@ class bstree_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   iterator iterator_to(reference value) BOOST_NOEXCEPT;
+   iterator iterator_to(reference value);
 
    //! <b>Requires</b>: value must be an lvalue and shall be in a set of
    //!   appropriate type. Otherwise the behavior is undefined.
@@ -1870,7 +1877,7 @@ class bstree_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   const_iterator iterator_to(const_reference value) const BOOST_NOEXCEPT;
+   const_iterator iterator_to(const_reference value) const;
 
    //! <b>Requires</b>: value shall not be in a container.
    //!
@@ -1883,7 +1890,7 @@ class bstree_impl
    //!
    //! <b>Note</b>: This function puts the hook in the well-known default state
    //!   used by auto_unlink and safe hooks.
-   static void init_node(reference value) BOOST_NOEXCEPT;
+   static void init_node(reference value);
 
    #endif   //#if defined(BOOST_INTRUSIVE_DOXYGEN_INVOKED)
 
@@ -1897,14 +1904,14 @@ class bstree_impl
    //!   only be used for more unlink_leftmost_without_rebalance calls.
    //!   This function is normally used to achieve a step by step
    //!   controlled destruction of the container.
-   pointer unlink_leftmost_without_rebalance() BOOST_NOEXCEPT
+   pointer unlink_leftmost_without_rebalance()
    {
       node_ptr to_be_disposed(node_algorithms::unlink_leftmost_without_rebalance
                            (this->header_ptr()));
       if(!to_be_disposed)
          return 0;
       this->sz_traits().decrement();
-      BOOST_IF_CONSTEXPR(safemode_or_autounlink)//If this is commented does not work with normal_link
+      if(safemode_or_autounlink)//If this is commented does not work with normal_link
          node_algorithms::init(to_be_disposed);
       return this->get_value_traits().to_value_ptr(to_be_disposed);
    }
@@ -1925,14 +1932,14 @@ class bstree_impl
    //!   with_this is not equivalent to *replace_this according to the
    //!   ordering rules. This function is faster than erasing and inserting
    //!   the node, since no rebalancing or comparison is needed.
-   void replace_node(iterator replace_this, reference with_this) BOOST_NOEXCEPT;
+   void replace_node(iterator replace_this, reference with_this);
 
    //! <b>Effects</b>: Rebalances the tree.
    //!
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Linear.
-   void rebalance() BOOST_NOEXCEPT;
+   void rebalance();
 
    //! <b>Requires</b>: old_root is a node of a tree.
    //!
@@ -1943,7 +1950,7 @@ class bstree_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Linear to the elements in the subtree.
-   iterator rebalance_subtree(iterator r) BOOST_NOEXCEPT;
+   iterator rebalance_subtree(iterator root);
 
    #endif   //#if defined(BOOST_INTRUSIVE_DOXYGEN_INVOKED)
 
@@ -1959,12 +1966,12 @@ class bstree_impl
    //! If the user calls
    //! this function with a constant time size container or stateful comparison
    //! functor a compilation error will be issued.
-   static void remove_node(reference value) BOOST_NOEXCEPT
+   static void remove_node(reference value)
    {
       BOOST_STATIC_ASSERT((!constant_time_size));
       node_ptr to_remove(value_traits::to_node_ptr(value));
       node_algorithms::unlink(to_remove);
-      BOOST_IF_CONSTEXPR(safemode_or_autounlink)
+      if(safemode_or_autounlink)
          node_algorithms::init(to_remove);
    }
 
@@ -2054,7 +2061,8 @@ class bstree_impl
       typedef typename get_node_checker<AlgoType, ValueTraits, nodeptr_comp_t, ExtraChecker>::type node_checker_t;
       typename node_checker_t::return_type checker_return;
       node_algorithms::check(this->header_ptr(), node_checker_t(nodeptr_comp, extra_checker), checker_return);
-      BOOST_INTRUSIVE_INVARIANT_ASSERT(!constant_time_size || this->sz_traits().get_size() == checker_return.node_count);
+      if (constant_time_size)
+         BOOST_INTRUSIVE_INVARIANT_ASSERT(this->sz_traits().get_size() == checker_return.node_count);
    }
 
    //! <b>Effects</b>: Asserts the integrity of the container.
@@ -2216,16 +2224,16 @@ class bstree
    BOOST_INTRUSIVE_FORCEINLINE void clone_from(BOOST_RV_REF(bstree) src, Cloner cloner, Disposer disposer)
    {  Base::clone_from(BOOST_MOVE_BASE(Base, src), cloner, disposer);  }
 
-   BOOST_INTRUSIVE_FORCEINLINE static bstree &container_from_end_iterator(iterator end_iterator) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static bstree &container_from_end_iterator(iterator end_iterator)
    {  return static_cast<bstree &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const bstree &container_from_end_iterator(const_iterator end_iterator) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static const bstree &container_from_end_iterator(const_iterator end_iterator)
    {  return static_cast<const bstree &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static bstree &container_from_iterator(iterator it) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static bstree &container_from_iterator(iterator it)
    {  return static_cast<bstree &>(Base::container_from_iterator(it));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const bstree &container_from_iterator(const_iterator it) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static const bstree &container_from_iterator(const_iterator it)
    {  return static_cast<const bstree &>(Base::container_from_iterator(it));   }
 };
 

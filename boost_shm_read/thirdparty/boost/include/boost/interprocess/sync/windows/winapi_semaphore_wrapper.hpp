@@ -24,6 +24,7 @@
 #include <boost/interprocess/creation_tags.hpp>
 #include <boost/interprocess/permissions.hpp>
 #include <boost/interprocess/detail/win32_api.hpp>
+#include <boost/interprocess/detail/posix_time_types_wrk.hpp>
 #include <boost/interprocess/sync/windows/winapi_wrapper_common.hpp>
 #include <boost/interprocess/errors.hpp>
 #include <boost/interprocess/exceptions.hpp>
@@ -59,8 +60,7 @@ class winapi_semaphore_functions
    bool try_wait()
    {  return winapi_wrapper_try_wait_for_single_object(m_sem_hnd);  }
 
-   template<class TimePoint>
-   bool timed_wait(const TimePoint &abs_time)
+   bool timed_wait(const boost::posix_time::ptime &abs_time)
    {  return winapi_wrapper_timed_wait_for_single_object(m_sem_hnd, abs_time);  }
 
    long value() const
@@ -115,8 +115,7 @@ class winapi_semaphore_wrapper
    void *handle() const
    {  return m_sem_hnd; }
 
-   template <class CharT>
-   bool open_or_create( const CharT *name
+   bool open_or_create( const char *name
                       , long sem_count
                       , long max_count
                       , const permissions &perm

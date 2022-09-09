@@ -22,6 +22,7 @@
 #include <boost/interprocess/detail/config_begin.hpp>
 #include <boost/interprocess/detail/workaround.hpp>
 
+#include <boost/interprocess/detail/posix_time_types_wrk.hpp>
 #include <boost/interprocess/sync/posix/semaphore_wrapper.hpp>
 
 namespace boost {
@@ -50,8 +51,7 @@ class posix_semaphore
    bool try_wait()
    {  return semaphore_try_wait(&m_sem); }
 
-   template<class TimePoint>
-   bool timed_wait(const TimePoint &abs_time)
+   bool timed_wait(const boost::posix_time::ptime &abs_time)
    {  return semaphore_timed_wait(&m_sem, abs_time); }
 
    private:

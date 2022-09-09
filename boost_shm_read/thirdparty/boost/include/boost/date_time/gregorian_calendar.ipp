@@ -77,7 +77,7 @@ namespace date_time {
     unsigned short a = static_cast<unsigned short>((14-ymd.month)/12);
     unsigned short y = static_cast<unsigned short>(ymd.year + 4800 - a);
     unsigned short m = static_cast<unsigned short>(ymd.month + 12*a - 3);
-    unsigned long  d = static_cast<unsigned long>(ymd.day) + ((153*m + 2)/5) + 365*y + (y/4) - (y/100) + (y/400) - 32045;
+    unsigned long  d = ymd.day + ((153*m + 2)/5) + 365*y + (y/4) - (y/100) + (y/400) - 32045;
     return static_cast<date_int_type>(d);
   }
 
@@ -189,7 +189,7 @@ namespace date_time {
         return 29;
       } else {
         return 28;
-      }
+      };
     case 4:
     case 6:
     case 9:
@@ -197,10 +197,11 @@ namespace date_time {
       return 30;
     default:
       return 31;
-    }
+    };
+
   }
 
-  //! Provide the ymd_type specification for the calendar start
+  //! Provide the ymd_type specification for the calandar start
   template<typename ymd_type_, typename date_int_type_>
   BOOST_CXX14_CONSTEXPR
   inline
@@ -222,3 +223,5 @@ namespace date_time {
 
 
 } } //namespace gregorian
+
+

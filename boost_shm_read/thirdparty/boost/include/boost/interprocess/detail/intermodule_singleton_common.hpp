@@ -34,7 +34,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
-#include <typeinfo>
 #include <sstream>
 
 namespace boost{
@@ -121,7 +120,7 @@ class intermodule_singleton_common
             }
          }
          if(previous_module_singleton_initialized == Uninitialized){
-            BOOST_TRY{
+            try{
                //Now initialize the global map, this function must solve concurrency
                //issues between threads of several modules
                initialize_global_map_handle();
@@ -143,11 +142,11 @@ class intermodule_singleton_common
                //before this one. Now marked as initialized
                atomic_write32(&this_module_singleton_initialized, Initialized);
             }
-            BOOST_CATCH(...){
+            catch(...){
                //Mark singleton failed to initialize
                atomic_write32(&this_module_singleton_initialized, Broken);
-               BOOST_RETHROW
-            } BOOST_CATCH_END
+               throw;
+            }
          }
          //If previous state was initializing, this means that another winner thread is
          //trying to initialize the singleton. Just wait until completes its work.
@@ -232,7 +231,7 @@ class intermodule_singleton_common
          }
          else{ //(tmp == Uninitialized)
             //If not initialized try it again?
-            BOOST_TRY{
+            try{
                //Remove old global map from the system
                intermodule_singleton_helpers::thread_safe_global_map_dependant<ThreadSafeGlobalMap>::remove_old_gmem();
                //in-place construction of the global map class
@@ -255,10 +254,10 @@ class intermodule_singleton_common
                   break;
                }
             }
-            BOOST_CATCH(...){
+            catch(...){
                //
-               BOOST_RETHROW
-            } BOOST_CATCH_END
+               throw;
+            }
          }
       }
    }
@@ -406,17 +405,17 @@ class intermodule_singleton_impl
             <ThreadSafeGlobalMap>::find(m_map, typeid(C).name());
          if(!rcount){
             C *p = new C;
-            BOOST_TRY{
+            try{
                ref_count_ptr val(p, 0u);
                rcount = intermodule_singleton_helpers::thread_safe_global_map_dependant
                            <ThreadSafeGlobalMap>::insert(m_map, typeid(C).name(), val);
             }
-            BOOST_CATCH(...){
+            catch(...){
                intermodule_singleton_helpers::thread_safe_global_map_dependant
                            <ThreadSafeGlobalMap>::erase(m_map, typeid(C).name());
                delete p;
-               BOOST_RETHROW
-            } BOOST_CATCH_END
+               throw;
+            }
          }
          //if(Phoenix){
             std::atexit(&atexit_work);

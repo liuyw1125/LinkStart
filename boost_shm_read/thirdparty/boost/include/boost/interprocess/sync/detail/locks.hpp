@@ -35,18 +35,18 @@ class internal_mutex_lock
    typedef typename Lock::mutex_type::internal_mutex_type  mutex_type;
 
 
-   BOOST_INTERPROCESS_FORCEINLINE internal_mutex_lock(Lock &l)
+   internal_mutex_lock(Lock &l)
       : l_(l)
    {}
 
-   BOOST_INTERPROCESS_FORCEINLINE mutex_type* mutex() const
+   mutex_type* mutex() const
    {  return l_ ? &l_.mutex()->internal_mutex() : 0;  }
 
-   BOOST_INTERPROCESS_FORCEINLINE void lock()    { l_.lock(); }
+   void lock()    { l_.lock(); }
 
-   BOOST_INTERPROCESS_FORCEINLINE void unlock()  { l_.unlock(); }
+   void unlock()  { l_.unlock(); }
 
-   BOOST_INTERPROCESS_FORCEINLINE operator unspecified_bool_type() const
+   operator unspecified_bool_type() const
    {  return l_ ? &internal_mutex_lock::lock : 0;  }
 
    private:
@@ -58,13 +58,11 @@ class lock_inverter
 {
    Lock &l_;
    public:
-   BOOST_INTERPROCESS_FORCEINLINE lock_inverter(Lock &l)
+   lock_inverter(Lock &l)
       :  l_(l)
    {}
-
-   BOOST_INTERPROCESS_FORCEINLINE void lock()    {   l_.unlock();   }
-
-   BOOST_INTERPROCESS_FORCEINLINE void unlock()  {   l_.lock();     }
+   void lock()    {   l_.unlock();   }
+   void unlock()  {   l_.lock();     }
 };
 
 template <class Lock>
@@ -73,15 +71,12 @@ class lock_to_sharable
    Lock &l_;
 
    public:
-   BOOST_INTERPROCESS_FORCEINLINE explicit lock_to_sharable(Lock &l)
+   explicit lock_to_sharable(Lock &l)
       :  l_(l)
    {}
-
-   BOOST_INTERPROCESS_FORCEINLINE void lock()    {  l_.lock_sharable();     }
-
-   BOOST_INTERPROCESS_FORCEINLINE bool try_lock(){  return l_.try_lock_sharable(); }
-
-   BOOST_INTERPROCESS_FORCEINLINE void unlock()  {  l_.unlock_sharable();   }
+   void lock()    {  l_.lock_sharable();     }
+   bool try_lock(){  return l_.try_lock_sharable(); }
+   void unlock()  {  l_.unlock_sharable();   }
 };
 
 template <class Lock>
@@ -90,16 +85,11 @@ class lock_to_wait
    Lock &l_;
 
    public:
-   BOOST_INTERPROCESS_FORCEINLINE explicit lock_to_wait(Lock &l)
+   explicit lock_to_wait(Lock &l)
       :  l_(l)
    {}
-   BOOST_INTERPROCESS_FORCEINLINE void lock()     {  l_.wait();     }
-
-   BOOST_INTERPROCESS_FORCEINLINE bool try_lock() {  return l_.try_wait(); }
-
-   template<class TimePoint>
-   BOOST_INTERPROCESS_FORCEINLINE bool timed_lock(const TimePoint &abs_time)
-      {  return l_.timed_wait(abs_time);   }
+   void lock()    {  l_.wait();     }
+   bool try_lock(){  return l_.try_wait(); }
 };
 
 }  //namespace ipcdetail

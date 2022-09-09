@@ -120,61 +120,61 @@ class set_impl
    ~set_impl();
 
    //! @copydoc ::boost::intrusive::rbtree::begin()
-   iterator begin() BOOST_NOEXCEPT;
+   iterator begin();
 
    //! @copydoc ::boost::intrusive::rbtree::begin()const
-   const_iterator begin() const BOOST_NOEXCEPT;
+   const_iterator begin() const;
 
    //! @copydoc ::boost::intrusive::rbtree::cbegin()const
-   const_iterator cbegin() const BOOST_NOEXCEPT;
+   const_iterator cbegin() const;
 
    //! @copydoc ::boost::intrusive::rbtree::end()
-   iterator end() BOOST_NOEXCEPT;
+   iterator end();
 
    //! @copydoc ::boost::intrusive::rbtree::end()const
-   const_iterator end() const BOOST_NOEXCEPT;
+   const_iterator end() const;
 
    //! @copydoc ::boost::intrusive::rbtree::cend()const
-   const_iterator cend() const BOOST_NOEXCEPT;
+   const_iterator cend() const;
 
    //! @copydoc ::boost::intrusive::rbtree::rbegin()
-   reverse_iterator rbegin() BOOST_NOEXCEPT;
+   reverse_iterator rbegin();
 
    //! @copydoc ::boost::intrusive::rbtree::rbegin()const
-   const_reverse_iterator rbegin() const BOOST_NOEXCEPT;
+   const_reverse_iterator rbegin() const;
 
    //! @copydoc ::boost::intrusive::rbtree::crbegin()const
-   const_reverse_iterator crbegin() const BOOST_NOEXCEPT;
+   const_reverse_iterator crbegin() const;
 
    //! @copydoc ::boost::intrusive::rbtree::rend()
-   reverse_iterator rend() BOOST_NOEXCEPT;
+   reverse_iterator rend();
 
    //! @copydoc ::boost::intrusive::rbtree::rend()const
-   const_reverse_iterator rend() const BOOST_NOEXCEPT;
+   const_reverse_iterator rend() const;
 
    //! @copydoc ::boost::intrusive::rbtree::crend()const
-   const_reverse_iterator crend() const BOOST_NOEXCEPT;
+   const_reverse_iterator crend() const;
 
    //! @copydoc ::boost::intrusive::rbtree::root()
-   iterator root() BOOST_NOEXCEPT;
+   iterator root();
 
    //! @copydoc ::boost::intrusive::rbtree::root()const
-   const_iterator root() const BOOST_NOEXCEPT;
+   const_iterator root() const;
 
    //! @copydoc ::boost::intrusive::rbtree::croot()const
-   const_iterator croot() const BOOST_NOEXCEPT;
+   const_iterator croot() const;
 
    //! @copydoc ::boost::intrusive::rbtree::container_from_end_iterator(iterator)
-   static set_impl &container_from_end_iterator(iterator end_iterator) BOOST_NOEXCEPT;
+   static set_impl &container_from_end_iterator(iterator end_iterator);
 
    //! @copydoc ::boost::intrusive::rbtree::container_from_end_iterator(const_iterator)
-   static const set_impl &container_from_end_iterator(const_iterator end_iterator) BOOST_NOEXCEPT;
+   static const set_impl &container_from_end_iterator(const_iterator end_iterator);
 
    //! @copydoc ::boost::intrusive::rbtree::container_from_iterator(iterator)
-   static set_impl &container_from_iterator(iterator it) BOOST_NOEXCEPT;
+   static set_impl &container_from_iterator(iterator it);
 
    //! @copydoc ::boost::intrusive::rbtree::container_from_iterator(const_iterator)
-   static const set_impl &container_from_iterator(const_iterator it) BOOST_NOEXCEPT;
+   static const set_impl &container_from_iterator(const_iterator it);
 
    //! @copydoc ::boost::intrusive::rbtree::key_comp()const
    key_compare key_comp() const;
@@ -183,10 +183,10 @@ class set_impl
    value_compare value_comp() const;
 
    //! @copydoc ::boost::intrusive::rbtree::empty()const
-   bool empty() const BOOST_NOEXCEPT;
+   bool empty() const;
 
    //! @copydoc ::boost::intrusive::rbtree::size()const
-   size_type size() const BOOST_NOEXCEPT;
+   size_type size() const;
 
    //! @copydoc ::boost::intrusive::rbtree::swap
    void swap(set_impl& other);
@@ -244,24 +244,24 @@ class set_impl
    {  tree_type::insert_unique(b, e);  }
 
    //! @copydoc ::boost::intrusive::rbtree::insert_unique_commit
-   iterator insert_commit(reference value, const insert_commit_data &commit_data) BOOST_NOEXCEPT
+   iterator insert_commit(reference value, const insert_commit_data &commit_data)
    {  return tree_type::insert_unique_commit(value, commit_data);  }
 
    #ifdef BOOST_INTRUSIVE_DOXYGEN_INVOKED
    //! @copydoc ::boost::intrusive::rbtree::insert_before
-   iterator insert_before(const_iterator pos, reference value) BOOST_NOEXCEPT;
+   iterator insert_before(const_iterator pos, reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::push_back
-   void push_back(reference value) BOOST_NOEXCEPT;
+   void push_back(reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::push_front
-   void push_front(reference value) BOOST_NOEXCEPT;
+   void push_front(reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::erase(const_iterator)
-   iterator erase(const_iterator i) BOOST_NOEXCEPT;
+   iterator erase(const_iterator i);
 
    //! @copydoc ::boost::intrusive::rbtree::erase(const_iterator,const_iterator)
-   iterator erase(const_iterator b, const_iterator e) BOOST_NOEXCEPT;
+   iterator erase(const_iterator b, const_iterator e);
 
    //! @copydoc ::boost::intrusive::rbtree::erase(const key_type &)
    size_type erase(const key_type &key);
@@ -272,11 +272,11 @@ class set_impl
 
    //! @copydoc ::boost::intrusive::rbtree::erase_and_dispose(const_iterator,Disposer)
    template<class Disposer>
-   iterator erase_and_dispose(const_iterator i, Disposer disposer) BOOST_NOEXCEPT;
+   iterator erase_and_dispose(const_iterator i, Disposer disposer);
 
    //! @copydoc ::boost::intrusive::rbtree::erase_and_dispose(const_iterator,const_iterator,Disposer)
    template<class Disposer>
-   iterator erase_and_dispose(const_iterator b, const_iterator e, Disposer disposer) BOOST_NOEXCEPT;
+   iterator erase_and_dispose(const_iterator b, const_iterator e, Disposer disposer);
 
    //! @copydoc ::boost::intrusive::rbtree::erase_and_dispose(const key_type &, Disposer)
    template<class Disposer>
@@ -287,11 +287,11 @@ class set_impl
    size_type erase_and_dispose(const KeyType& key, KeyTypeKeyCompare comp, Disposer disposer);
 
    //! @copydoc ::boost::intrusive::rbtree::clear
-   void clear() BOOST_NOEXCEPT;
+   void clear();
 
    //! @copydoc ::boost::intrusive::rbtree::clear_and_dispose
    template<class Disposer>
-   void clear_and_dispose(Disposer disposer) BOOST_NOEXCEPT;
+   void clear_and_dispose(Disposer disposer);
 
    #endif   //   #ifdef BOOST_INTRUSIVE_DOXYGEN_INVOKED
 
@@ -391,28 +391,28 @@ class set_impl
          (const KeyType& lower_key, const KeyType& upper_key, KeyTypeKeyCompare comp, bool left_closed, bool right_closed) const;
 
    //! @copydoc ::boost::intrusive::rbtree::s_iterator_to(reference)
-   static iterator s_iterator_to(reference value) BOOST_NOEXCEPT;
+   static iterator s_iterator_to(reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::s_iterator_to(const_reference)
-   static const_iterator s_iterator_to(const_reference value) BOOST_NOEXCEPT;
+   static const_iterator s_iterator_to(const_reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::iterator_to(reference)
-   iterator iterator_to(reference value) BOOST_NOEXCEPT;
+   iterator iterator_to(reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::iterator_to(const_reference)const
-   const_iterator iterator_to(const_reference value) const BOOST_NOEXCEPT;
+   const_iterator iterator_to(const_reference value) const;
 
    //! @copydoc ::boost::intrusive::rbtree::init_node(reference)
-   static void init_node(reference value) BOOST_NOEXCEPT;
+   static void init_node(reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::unlink_leftmost_without_rebalance
-   pointer unlink_leftmost_without_rebalance() BOOST_NOEXCEPT;
+   pointer unlink_leftmost_without_rebalance();
 
    //! @copydoc ::boost::intrusive::rbtree::replace_node
-   void replace_node(iterator replace_this, reference with_this) BOOST_NOEXCEPT;
+   void replace_node(iterator replace_this, reference with_this);
 
    //! @copydoc ::boost::intrusive::rbtree::remove_node
-   void remove_node(reference value) BOOST_NOEXCEPT;
+   void remove_node(reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::merge_unique
    template<class ...Options2>
@@ -555,16 +555,16 @@ class set
    BOOST_INTRUSIVE_FORCEINLINE void clone_from(BOOST_RV_REF(set) src, Cloner cloner, Disposer disposer)
    {  Base::clone_from(BOOST_MOVE_BASE(Base, src), cloner, disposer);  }
 
-   BOOST_INTRUSIVE_FORCEINLINE static set &container_from_end_iterator(iterator end_iterator) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static set &container_from_end_iterator(iterator end_iterator)
    {  return static_cast<set &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const set &container_from_end_iterator(const_iterator end_iterator) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static const set &container_from_end_iterator(const_iterator end_iterator)
    {  return static_cast<const set &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static set &container_from_iterator(iterator it) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static set &container_from_iterator(iterator it)
    {  return static_cast<set &>(Base::container_from_iterator(it));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const set &container_from_iterator(const_iterator it) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static const set &container_from_iterator(const_iterator it)
    {  return static_cast<const set &>(Base::container_from_iterator(it));   }
 };
 
@@ -657,61 +657,61 @@ class multiset_impl
    ~multiset_impl();
 
    //! @copydoc ::boost::intrusive::rbtree::begin()
-   iterator begin() BOOST_NOEXCEPT;
+   iterator begin();
 
    //! @copydoc ::boost::intrusive::rbtree::begin()const
-   const_iterator begin() const BOOST_NOEXCEPT;
+   const_iterator begin() const;
 
    //! @copydoc ::boost::intrusive::rbtree::cbegin()const
-   const_iterator cbegin() const BOOST_NOEXCEPT;
+   const_iterator cbegin() const;
 
    //! @copydoc ::boost::intrusive::rbtree::end()
-   iterator end() BOOST_NOEXCEPT;
+   iterator end();
 
    //! @copydoc ::boost::intrusive::rbtree::end()const
-   const_iterator end() const BOOST_NOEXCEPT;
+   const_iterator end() const;
 
    //! @copydoc ::boost::intrusive::rbtree::cend()const
-   const_iterator cend() const BOOST_NOEXCEPT;
+   const_iterator cend() const;
 
    //! @copydoc ::boost::intrusive::rbtree::rbegin()
-   reverse_iterator rbegin() BOOST_NOEXCEPT;
+   reverse_iterator rbegin();
 
    //! @copydoc ::boost::intrusive::rbtree::rbegin()const
-   const_reverse_iterator rbegin() const BOOST_NOEXCEPT;
+   const_reverse_iterator rbegin() const;
 
    //! @copydoc ::boost::intrusive::rbtree::crbegin()const
-   const_reverse_iterator crbegin() const BOOST_NOEXCEPT;
+   const_reverse_iterator crbegin() const;
 
    //! @copydoc ::boost::intrusive::rbtree::rend()
-   reverse_iterator rend() BOOST_NOEXCEPT;
+   reverse_iterator rend();
 
    //! @copydoc ::boost::intrusive::rbtree::rend()const
-   const_reverse_iterator rend() const BOOST_NOEXCEPT;
+   const_reverse_iterator rend() const;
 
    //! @copydoc ::boost::intrusive::rbtree::crend()const
-   const_reverse_iterator crend() const BOOST_NOEXCEPT;
+   const_reverse_iterator crend() const;
 
    //! @copydoc ::boost::intrusive::rbtree::root()
-   iterator root() BOOST_NOEXCEPT;
+   iterator root();
 
    //! @copydoc ::boost::intrusive::rbtree::root()const
-   const_iterator root() const BOOST_NOEXCEPT;
+   const_iterator root() const;
 
    //! @copydoc ::boost::intrusive::rbtree::croot()const
-   const_iterator croot() const BOOST_NOEXCEPT;
+   const_iterator croot() const;
 
    //! @copydoc ::boost::intrusive::rbtree::container_from_end_iterator(iterator)
-   static multiset_impl &container_from_end_iterator(iterator end_iterator) BOOST_NOEXCEPT;
+   static multiset_impl &container_from_end_iterator(iterator end_iterator);
 
    //! @copydoc ::boost::intrusive::rbtree::container_from_end_iterator(const_iterator)
-   static const multiset_impl &container_from_end_iterator(const_iterator end_iterator) BOOST_NOEXCEPT;
+   static const multiset_impl &container_from_end_iterator(const_iterator end_iterator);
 
    //! @copydoc ::boost::intrusive::rbtree::container_from_iterator(iterator)
-   static multiset_impl &container_from_iterator(iterator it) BOOST_NOEXCEPT;
+   static multiset_impl &container_from_iterator(iterator it);
 
    //! @copydoc ::boost::intrusive::rbtree::container_from_iterator(const_iterator)
-   static const multiset_impl &container_from_iterator(const_iterator it) BOOST_NOEXCEPT;
+   static const multiset_impl &container_from_iterator(const_iterator it);
 
    //! @copydoc ::boost::intrusive::rbtree::key_comp()const
    key_compare key_comp() const;
@@ -720,10 +720,10 @@ class multiset_impl
    value_compare value_comp() const;
 
    //! @copydoc ::boost::intrusive::rbtree::empty()const
-   bool empty() const BOOST_NOEXCEPT;
+   bool empty() const;
 
    //! @copydoc ::boost::intrusive::rbtree::size()const
-   size_type size() const BOOST_NOEXCEPT;
+   size_type size() const;
 
    //! @copydoc ::boost::intrusive::rbtree::swap
    void swap(multiset_impl& other);
@@ -758,19 +758,19 @@ class multiset_impl
 
    #ifdef BOOST_INTRUSIVE_DOXYGEN_INVOKED
    //! @copydoc ::boost::intrusive::rbtree::insert_before
-   iterator insert_before(const_iterator pos, reference value) BOOST_NOEXCEPT;
+   iterator insert_before(const_iterator pos, reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::push_back
-   void push_back(reference value) BOOST_NOEXCEPT;
+   void push_back(reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::push_front
-   void push_front(reference value) BOOST_NOEXCEPT;
+   void push_front(reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::erase(const_iterator)
-   iterator erase(const_iterator i) BOOST_NOEXCEPT;
+   iterator erase(const_iterator i);
 
    //! @copydoc ::boost::intrusive::rbtree::erase(const_iterator,const_iterator)
-   iterator erase(const_iterator b, const_iterator e) BOOST_NOEXCEPT;
+   iterator erase(const_iterator b, const_iterator e);
 
    //! @copydoc ::boost::intrusive::rbtree::erase(const key_type &)
    size_type erase(const key_type &key);
@@ -781,11 +781,11 @@ class multiset_impl
 
    //! @copydoc ::boost::intrusive::rbtree::erase_and_dispose(const_iterator,Disposer)
    template<class Disposer>
-   iterator erase_and_dispose(const_iterator i, Disposer disposer) BOOST_NOEXCEPT;
+   iterator erase_and_dispose(const_iterator i, Disposer disposer);
 
    //! @copydoc ::boost::intrusive::rbtree::erase_and_dispose(const_iterator,const_iterator,Disposer)
    template<class Disposer>
-   iterator erase_and_dispose(const_iterator b, const_iterator e, Disposer disposer) BOOST_NOEXCEPT;
+   iterator erase_and_dispose(const_iterator b, const_iterator e, Disposer disposer);
 
    //! @copydoc ::boost::intrusive::rbtree::erase_and_dispose(const key_type &, Disposer)
    template<class Disposer>
@@ -796,11 +796,11 @@ class multiset_impl
    size_type erase_and_dispose(const KeyType& key, KeyTypeKeyCompare comp, Disposer disposer);
 
    //! @copydoc ::boost::intrusive::rbtree::clear
-   void clear() BOOST_NOEXCEPT;
+   void clear();
 
    //! @copydoc ::boost::intrusive::rbtree::clear_and_dispose
    template<class Disposer>
-   void clear_and_dispose(Disposer disposer) BOOST_NOEXCEPT;
+   void clear_and_dispose(Disposer disposer);
 
    //! @copydoc ::boost::intrusive::rbtree::count(const key_type &)const
    size_type count(const key_type &key) const;
@@ -886,28 +886,28 @@ class multiset_impl
          (const KeyType& lower_key, const KeyType& upper_key, KeyTypeKeyCompare comp, bool left_closed, bool right_closed) const;
 
    //! @copydoc ::boost::intrusive::rbtree::s_iterator_to(reference)
-   static iterator s_iterator_to(reference value) BOOST_NOEXCEPT;
+   static iterator s_iterator_to(reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::s_iterator_to(const_reference)
-   static const_iterator s_iterator_to(const_reference value) BOOST_NOEXCEPT;
+   static const_iterator s_iterator_to(const_reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::iterator_to(reference)
-   iterator iterator_to(reference value) BOOST_NOEXCEPT;
+   iterator iterator_to(reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::iterator_to(const_reference)const
-   const_iterator iterator_to(const_reference value) const BOOST_NOEXCEPT;
+   const_iterator iterator_to(const_reference value) const;
 
    //! @copydoc ::boost::intrusive::rbtree::init_node(reference)
-   static void init_node(reference value) BOOST_NOEXCEPT;
+   static void init_node(reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::unlink_leftmost_without_rebalance
-   pointer unlink_leftmost_without_rebalance() BOOST_NOEXCEPT;
+   pointer unlink_leftmost_without_rebalance();
 
    //! @copydoc ::boost::intrusive::rbtree::replace_node
-   void replace_node(iterator replace_this, reference with_this) BOOST_NOEXCEPT;
+   void replace_node(iterator replace_this, reference with_this);
 
    //! @copydoc ::boost::intrusive::rbtree::remove_node
-   void remove_node(reference value) BOOST_NOEXCEPT;
+   void remove_node(reference value);
 
    //! @copydoc ::boost::intrusive::rbtree::merge_equal
    template<class ...Options2>
@@ -1050,16 +1050,16 @@ class multiset
    BOOST_INTRUSIVE_FORCEINLINE void clone_from(BOOST_RV_REF(multiset) src, Cloner cloner, Disposer disposer)
    {  Base::clone_from(BOOST_MOVE_BASE(Base, src), cloner, disposer);  }
 
-   BOOST_INTRUSIVE_FORCEINLINE static multiset &container_from_end_iterator(iterator end_iterator) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static multiset &container_from_end_iterator(iterator end_iterator)
    {  return static_cast<multiset &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const multiset &container_from_end_iterator(const_iterator end_iterator) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static const multiset &container_from_end_iterator(const_iterator end_iterator)
    {  return static_cast<const multiset &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static multiset &container_from_iterator(iterator it) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static multiset &container_from_iterator(iterator it)
    {  return static_cast<multiset &>(Base::container_from_iterator(it));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const multiset &container_from_iterator(const_iterator it) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static const multiset &container_from_iterator(const_iterator it)
    {  return static_cast<const multiset &>(Base::container_from_iterator(it));   }
 };
 

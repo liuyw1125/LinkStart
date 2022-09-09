@@ -78,9 +78,9 @@ int main ()
             trace_queue * data = new (addr) trace_queue;
 
 
-            const int NumMsg = 100;
+            const int NumMsg = 100001;
             Log::SetVerbosity(Log::Info);
-            logInfo(boost_shm, "send msg start");
+            //logInfo(boost_shm, "send msg start");
             for(int i = 0; i < NumMsg; ++i){
                 scoped_lock<interprocess_mutex> lock(data->mutex);
                 if(data->message_in){
@@ -88,13 +88,19 @@ int main ()
                 }
                 if(i == (NumMsg-1)) {
                     std::sprintf(data->items, "%s", "last message");
-                    std::printf("send--->%s\n", "last message");
+                    //std::printf("send--->%s\n", "last message");
+                    logInfo("send -->", "last message");
 
                 }
                 else {
                     std::sprintf(data->items, "%s_%d", "my_trace", i);
+                    //std::sprintf(data->items, "%s", "test");
+                    //std::sprintf(data->items, "%s_%d", "yes", i);
                     //std::printf("send--->%s_%d\n", "my_trace", i);
                     //std::string s = "my_trace" + std::to_string(i);
+//                    if (i == 1) {
+//                        logInfo(boost_shm, data->items);
+//                    }
                     logInfo(boost_shm, data->items);
                 }
 

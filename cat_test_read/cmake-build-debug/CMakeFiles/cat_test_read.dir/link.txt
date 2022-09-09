@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/cat_test_read.dir/main.cpp.o -o cat_test_read  -lrt -lpthread 

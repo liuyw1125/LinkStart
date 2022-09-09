@@ -15,7 +15,6 @@
 #include <boost/type_traits/is_function.hpp>
 #include <boost/type_traits/detail/yes_no_type.hpp>
 #include <boost/config/workaround.hpp>
-#include <cstddef>
 
 /*
  * CAUTION:
@@ -41,7 +40,7 @@ namespace boost {
 
    namespace detail{
 
-      template <std::size_t N>
+      template <unsigned N>
       struct ok_tag { double d; char c[N]; };
 
       template <class T>

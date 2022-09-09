@@ -39,6 +39,7 @@
 #include <cstddef>
 #include <boost/intrusive/detail/minimal_less_equal_header.hpp>
 #include <boost/intrusive/detail/minimal_pair_header.hpp>   //std::pair
+#include <cmath>
 #include <cstddef>
 
 #if defined(BOOST_HAS_PRAGMA_ONCE)
@@ -346,61 +347,61 @@ class sgtree_impl
    ~sgtree_impl();
 
    //! @copydoc ::boost::intrusive::bstree::begin()
-   iterator begin() BOOST_NOEXCEPT;
+   iterator begin();
 
    //! @copydoc ::boost::intrusive::bstree::begin()const
-   const_iterator begin() const BOOST_NOEXCEPT;
+   const_iterator begin() const;
 
    //! @copydoc ::boost::intrusive::bstree::cbegin()const
-   const_iterator cbegin() const BOOST_NOEXCEPT;
+   const_iterator cbegin() const;
 
    //! @copydoc ::boost::intrusive::bstree::end()
-   iterator end() BOOST_NOEXCEPT;
+   iterator end();
 
    //! @copydoc ::boost::intrusive::bstree::end()const
-   const_iterator end() const BOOST_NOEXCEPT;
+   const_iterator end() const;
 
    //! @copydoc ::boost::intrusive::bstree::cend()const
-   const_iterator cend() const BOOST_NOEXCEPT;
+   const_iterator cend() const;
 
    //! @copydoc ::boost::intrusive::bstree::rbegin()
-   reverse_iterator rbegin() BOOST_NOEXCEPT;
+   reverse_iterator rbegin();
 
    //! @copydoc ::boost::intrusive::bstree::rbegin()const
-   const_reverse_iterator rbegin() const BOOST_NOEXCEPT;
+   const_reverse_iterator rbegin() const;
 
    //! @copydoc ::boost::intrusive::bstree::crbegin()const
-   const_reverse_iterator crbegin() const BOOST_NOEXCEPT;
+   const_reverse_iterator crbegin() const;
 
    //! @copydoc ::boost::intrusive::bstree::rend()
-   reverse_iterator rend() BOOST_NOEXCEPT;
+   reverse_iterator rend();
 
    //! @copydoc ::boost::intrusive::bstree::rend()const
-   const_reverse_iterator rend() const BOOST_NOEXCEPT;
+   const_reverse_iterator rend() const;
 
    //! @copydoc ::boost::intrusive::bstree::crend()const
-   const_reverse_iterator crend() const BOOST_NOEXCEPT;
+   const_reverse_iterator crend() const;
 
    //! @copydoc ::boost::intrusive::bstree::root()
-   iterator root() BOOST_NOEXCEPT;
+   iterator root();
 
    //! @copydoc ::boost::intrusive::bstree::root()const
-   const_iterator root() const BOOST_NOEXCEPT;
+   const_iterator root() const;
 
    //! @copydoc ::boost::intrusive::bstree::croot()const
-   const_iterator croot() const BOOST_NOEXCEPT;
+   const_iterator croot() const;
 
    //! @copydoc ::boost::intrusive::bstree::container_from_end_iterator(iterator)
-   static sgtree_impl &container_from_end_iterator(iterator end_iterator) BOOST_NOEXCEPT;
+   static sgtree_impl &container_from_end_iterator(iterator end_iterator);
 
    //! @copydoc ::boost::intrusive::bstree::container_from_end_iterator(const_iterator)
-   static const sgtree_impl &container_from_end_iterator(const_iterator end_iterator) BOOST_NOEXCEPT;
+   static const sgtree_impl &container_from_end_iterator(const_iterator end_iterator);
 
    //! @copydoc ::boost::intrusive::bstree::container_from_iterator(iterator)
-   static sgtree_impl &container_from_iterator(iterator it) BOOST_NOEXCEPT;
+   static sgtree_impl &container_from_iterator(iterator it);
 
    //! @copydoc ::boost::intrusive::bstree::container_from_iterator(const_iterator)
-   static const sgtree_impl &container_from_iterator(const_iterator it) BOOST_NOEXCEPT;
+   static const sgtree_impl &container_from_iterator(const_iterator it);
 
    //! @copydoc ::boost::intrusive::bstree::key_comp()const
    key_compare key_comp() const;
@@ -409,10 +410,10 @@ class sgtree_impl
    value_compare value_comp() const;
 
    //! @copydoc ::boost::intrusive::bstree::empty()const
-   bool empty() const BOOST_NOEXCEPT;
+   bool empty() const;
 
    //! @copydoc ::boost::intrusive::bstree::size()const
-   size_type size() const BOOST_NOEXCEPT;
+   size_type size() const;
 
    #endif   //#ifdef BOOST_INTRUSIVE_DOXYGEN_INVOKED
 
@@ -446,7 +447,8 @@ class sgtree_impl
    iterator insert_equal(reference value)
    {
       node_ptr to_insert(this->get_value_traits().to_node_ptr(value));
-      BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || node_algorithms::unique(to_insert));
+      if(safemode_or_autounlink)
+         BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(node_algorithms::unique(to_insert));
       std::size_t max_tree_size = (std::size_t)this->max_tree_size_;
       node_ptr p = node_algorithms::insert_equal_upper_bound
          (this->tree_type::header_ptr(), to_insert, this->key_node_comp(this->key_comp())
@@ -460,7 +462,8 @@ class sgtree_impl
    iterator insert_equal(const_iterator hint, reference value)
    {
       node_ptr to_insert(this->get_value_traits().to_node_ptr(value));
-      BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || node_algorithms::unique(to_insert));
+      if(safemode_or_autounlink)
+         BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(node_algorithms::unique(to_insert));
       std::size_t max_tree_size = (std::size_t)this->max_tree_size_;
       node_ptr p = node_algorithms::insert_equal
          ( this->tree_type::header_ptr(), hint.pointed_node(), to_insert, this->key_node_comp(this->key_comp())
@@ -539,10 +542,11 @@ class sgtree_impl
    {  return this->insert_unique_check(hint, key, this->key_comp(), commit_data);   }
 
    //! @copydoc ::boost::intrusive::bstree::insert_unique_commit
-   iterator insert_unique_commit(reference value, const insert_commit_data &commit_data) BOOST_NOEXCEPT
+   iterator insert_unique_commit(reference value, const insert_commit_data &commit_data)
    {
       node_ptr to_insert(this->get_value_traits().to_node_ptr(value));
-      BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || node_algorithms::unique(to_insert));
+      if(safemode_or_autounlink)
+         BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(node_algorithms::unique(to_insert));
       std::size_t max_tree_size = (std::size_t)this->max_tree_size_;
       node_algorithms::insert_unique_commit
          ( this->tree_type::header_ptr(), to_insert, commit_data
@@ -568,10 +572,11 @@ class sgtree_impl
    }
 
    //! @copydoc ::boost::intrusive::bstree::insert_before
-   iterator insert_before(const_iterator pos, reference value) BOOST_NOEXCEPT
+   iterator insert_before(const_iterator pos, reference value)
    {
       node_ptr to_insert(this->get_value_traits().to_node_ptr(value));
-      BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || node_algorithms::unique(to_insert));
+      if(safemode_or_autounlink)
+         BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(node_algorithms::unique(to_insert));
       std::size_t max_tree_size = (std::size_t)this->max_tree_size_;
       node_ptr p = node_algorithms::insert_before
          ( this->tree_type::header_ptr(), pos.pointed_node(), to_insert
@@ -582,10 +587,11 @@ class sgtree_impl
    }
 
    //! @copydoc ::boost::intrusive::bstree::push_back
-   void push_back(reference value) BOOST_NOEXCEPT
+   void push_back(reference value)
    {
       node_ptr to_insert(this->get_value_traits().to_node_ptr(value));
-      BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || node_algorithms::unique(to_insert));
+      if(safemode_or_autounlink)
+         BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(node_algorithms::unique(to_insert));
       std::size_t max_tree_size = (std::size_t)this->max_tree_size_;
       node_algorithms::push_back
          ( this->tree_type::header_ptr(), to_insert
@@ -595,10 +601,11 @@ class sgtree_impl
    }
 
    //! @copydoc ::boost::intrusive::bstree::push_front
-   void push_front(reference value) BOOST_NOEXCEPT
+   void push_front(reference value)
    {
       node_ptr to_insert(this->get_value_traits().to_node_ptr(value));
-      BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || node_algorithms::unique(to_insert));
+      if(safemode_or_autounlink)
+         BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(node_algorithms::unique(to_insert));
       std::size_t max_tree_size = (std::size_t)this->max_tree_size_;
       node_algorithms::push_front
          ( this->tree_type::header_ptr(), to_insert
@@ -609,25 +616,26 @@ class sgtree_impl
 
 
    //! @copydoc ::boost::intrusive::bstree::erase(const_iterator)
-   iterator erase(const_iterator i) BOOST_NOEXCEPT
+   iterator erase(const_iterator i)
    {
       const_iterator ret(i);
       ++ret;
       node_ptr to_erase(i.pointed_node());
-      BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || !node_algorithms::unique(to_erase));
+      if(safemode_or_autounlink)
+         BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!node_algorithms::unique(to_erase));
       std::size_t max_tree_size = this->max_tree_size_;
       node_algorithms::erase
          ( this->tree_type::header_ptr(), to_erase, (std::size_t)this->size()
          , max_tree_size, this->get_alpha_by_max_size_func());
       this->max_tree_size_ = (size_type)max_tree_size;
       this->tree_type::sz_traits().decrement();
-      BOOST_IF_CONSTEXPR(safemode_or_autounlink)
+      if(safemode_or_autounlink)
          node_algorithms::init(to_erase);
       return ret.unconst();
    }
 
    //! @copydoc ::boost::intrusive::bstree::erase(const_iterator,const_iterator)
-   iterator erase(const_iterator b, const_iterator e) BOOST_NOEXCEPT
+   iterator erase(const_iterator b, const_iterator e)
    {  size_type n;   return private_erase(b, e, n);   }
 
    //! @copydoc ::boost::intrusive::bstree::erase(const key_type &)
@@ -648,7 +656,7 @@ class sgtree_impl
 
    //! @copydoc ::boost::intrusive::bstree::erase_and_dispose(const_iterator,Disposer)
    template<class Disposer>
-   iterator erase_and_dispose(const_iterator i, Disposer disposer) BOOST_NOEXCEPT
+   iterator erase_and_dispose(const_iterator i, Disposer disposer)
    {
       node_ptr to_erase(i.pointed_node());
       iterator ret(this->erase(i));
@@ -658,13 +666,13 @@ class sgtree_impl
 
    #if !defined(BOOST_INTRUSIVE_DOXYGEN_INVOKED)
    template<class Disposer>
-   iterator erase_and_dispose(iterator i, Disposer disposer) BOOST_NOEXCEPT
+   iterator erase_and_dispose(iterator i, Disposer disposer)
    {  return this->erase_and_dispose(const_iterator(i), disposer);   }
    #endif
 
    //! @copydoc ::boost::intrusive::bstree::erase_and_dispose(const_iterator,const_iterator,Disposer)
    template<class Disposer>
-   iterator erase_and_dispose(const_iterator b, const_iterator e, Disposer disposer) BOOST_NOEXCEPT
+   iterator erase_and_dispose(const_iterator b, const_iterator e, Disposer disposer)
    {  size_type n;   return private_erase(b, e, n, disposer);   }
 
    //! @copydoc ::boost::intrusive::bstree::erase_and_dispose(const key_type &, Disposer)
@@ -690,7 +698,7 @@ class sgtree_impl
    }
 
    //! @copydoc ::boost::intrusive::bstree::clear
-   void clear() BOOST_NOEXCEPT
+   void clear()
    {
       tree_type::clear();
       this->max_tree_size_ = 0;
@@ -698,7 +706,7 @@ class sgtree_impl
 
    //! @copydoc ::boost::intrusive::bstree::clear_and_dispose
    template<class Disposer>
-   void clear_and_dispose(Disposer disposer) BOOST_NOEXCEPT
+   void clear_and_dispose(Disposer disposer)
    {
       tree_type::clear_and_dispose(disposer);
       this->max_tree_size_ = 0;
@@ -849,34 +857,34 @@ class sgtree_impl
          (const KeyType& lower_key, const KeyType& upper_key, KeyTypeKeyCompare comp, bool left_closed, bool right_closed) const;
 
    //! @copydoc ::boost::intrusive::bstree::s_iterator_to(reference)
-   static iterator s_iterator_to(reference value) BOOST_NOEXCEPT;
+   static iterator s_iterator_to(reference value);
 
    //! @copydoc ::boost::intrusive::bstree::s_iterator_to(const_reference)
-   static const_iterator s_iterator_to(const_reference value) BOOST_NOEXCEPT;
+   static const_iterator s_iterator_to(const_reference value);
 
    //! @copydoc ::boost::intrusive::bstree::iterator_to(reference)
-   iterator iterator_to(reference value) BOOST_NOEXCEPT;
+   iterator iterator_to(reference value);
 
    //! @copydoc ::boost::intrusive::bstree::iterator_to(const_reference)const
-   const_iterator iterator_to(const_reference value) const BOOST_NOEXCEPT;
+   const_iterator iterator_to(const_reference value) const;
 
    //! @copydoc ::boost::intrusive::bstree::init_node(reference)
-   static void init_node(reference value) BOOST_NOEXCEPT;
+   static void init_node(reference value);
 
    //! @copydoc ::boost::intrusive::bstree::unlink_leftmost_without_rebalance
-   pointer unlink_leftmost_without_rebalance() BOOST_NOEXCEPT;
+   pointer unlink_leftmost_without_rebalance();
 
    //! @copydoc ::boost::intrusive::bstree::replace_node
-   void replace_node(iterator replace_this, reference with_this) BOOST_NOEXCEPT;
+   void replace_node(iterator replace_this, reference with_this);
 
    //! @copydoc ::boost::intrusive::bstree::remove_node
-   void remove_node(reference value) BOOST_NOEXCEPT;
+   void remove_node(reference value);
 
    //! @copydoc ::boost::intrusive::bstree::rebalance
-   void rebalance() BOOST_NOEXCEPT;
+   void rebalance();
 
    //! @copydoc ::boost::intrusive::bstree::rebalance_subtree
-   iterator rebalance_subtree(iterator root) BOOST_NOEXCEPT;
+   iterator rebalance_subtree(iterator root);
 
    friend bool operator< (const sgtree_impl &x, const sgtree_impl &y);
 
@@ -899,7 +907,7 @@ class sgtree_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   float balance_factor() const BOOST_NOEXCEPT
+   float balance_factor() const
    {  return this->get_alpha_traits().get_alpha(); }
 
    //! <b>Requires</b>: new_alpha must be a value between 0.5 and 1.0
@@ -910,7 +918,7 @@ class sgtree_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Linear to the elements in the subtree.
-   void balance_factor(float new_alpha) BOOST_NOEXCEPT
+   void balance_factor(float new_alpha)
    {
       //The alpha factor CAN't be changed if the fixed, floating operation-less
       //1/sqrt(2) alpha factor option is activated
@@ -929,14 +937,14 @@ class sgtree_impl
    /// @cond
    private:
    template<class Disposer>
-   iterator private_erase(const_iterator b, const_iterator e, size_type &n, Disposer disposer) BOOST_NOEXCEPT
+   iterator private_erase(const_iterator b, const_iterator e, size_type &n, Disposer disposer)
    {
       for(n = 0; b != e; ++n)
         this->erase_and_dispose(b++, disposer);
       return b.unconst();
    }
 
-   iterator private_erase(const_iterator b, const_iterator e, size_type &n) BOOST_NOEXCEPT
+   iterator private_erase(const_iterator b, const_iterator e, size_type &n)
    {
       for(n = 0; b != e; ++n)
         this->erase(b++);
@@ -1050,16 +1058,16 @@ class sgtree
    BOOST_INTRUSIVE_FORCEINLINE void clone_from(BOOST_RV_REF(sgtree) src, Cloner cloner, Disposer disposer)
    {  Base::clone_from(BOOST_MOVE_BASE(Base, src), cloner, disposer);  }
 
-   BOOST_INTRUSIVE_FORCEINLINE static sgtree &container_from_end_iterator(iterator end_iterator) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static sgtree &container_from_end_iterator(iterator end_iterator)
    {  return static_cast<sgtree &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const sgtree &container_from_end_iterator(const_iterator end_iterator) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static const sgtree &container_from_end_iterator(const_iterator end_iterator)
    {  return static_cast<const sgtree &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static sgtree &container_from_iterator(iterator it) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static sgtree &container_from_iterator(iterator it)
    {  return static_cast<sgtree &>(Base::container_from_iterator(it));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const sgtree &container_from_iterator(const_iterator it) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static const sgtree &container_from_iterator(const_iterator it)
    {  return static_cast<const sgtree &>(Base::container_from_iterator(it));   }
 };
 

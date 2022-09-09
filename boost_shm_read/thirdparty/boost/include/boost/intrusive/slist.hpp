@@ -37,13 +37,13 @@
 #include <boost/intrusive/detail/simple_disposers.hpp>
 #include <boost/intrusive/detail/size_holder.hpp>
 #include <boost/intrusive/detail/algorithm.hpp>
-#include <boost/intrusive/detail/value_functors.hpp>
-#include <boost/intrusive/detail/node_cloner_disposer.hpp>
 
 #include <boost/move/utility_core.hpp>
 #include <boost/static_assert.hpp>
 
+#include <boost/intrusive/detail/minimal_less_equal_header.hpp>//std::less
 #include <cstddef>   //std::size_t
+#include <boost/intrusive/detail/minimal_pair_header.hpp>   //std::pair
 
 #if defined(BOOST_HAS_PRAGMA_ONCE)
 #  pragma once
@@ -172,54 +172,56 @@ class slist_impl
    //A list with cached last node is incompatible with auto-unlink hooks!
    BOOST_STATIC_ASSERT(!(cache_last && ((int)value_traits::link_mode == (int)auto_unlink)));
 
-   BOOST_INTRUSIVE_FORCEINLINE node_ptr get_end_node()
-   {  return node_algorithms::end_node(this->get_root_node());  }
+   node_ptr get_end_node()
+   {  return node_ptr(linear ? node_ptr() : this->get_root_node());  }
 
-   BOOST_INTRUSIVE_FORCEINLINE const_node_ptr get_end_node() const
-   {  return node_algorithms::end_node(this->get_root_node());  }
+   const_node_ptr get_end_node() const
+   {
+      return const_node_ptr
+         (linear ? const_node_ptr() : this->get_root_node());  }
 
-   BOOST_INTRUSIVE_FORCEINLINE node_ptr get_root_node()
+   node_ptr get_root_node()
    { return data_.root_plus_size_.header_holder_.get_node(); }
 
-   BOOST_INTRUSIVE_FORCEINLINE const_node_ptr get_root_node() const
+   const_node_ptr get_root_node() const
    { return data_.root_plus_size_.header_holder_.get_node(); }
 
-   BOOST_INTRUSIVE_FORCEINLINE node_ptr get_last_node()
+   node_ptr get_last_node()
    {  return this->get_last_node(detail::bool_<cache_last>());  }
 
-   BOOST_INTRUSIVE_FORCEINLINE const_node_ptr get_last_node() const
+   const_node_ptr get_last_node() const
    {  return this->get_last_node(detail::bool_<cache_last>());  }
 
-   BOOST_INTRUSIVE_FORCEINLINE void set_last_node(node_ptr n)
+   void set_last_node(const node_ptr &n)
    {  return this->set_last_node(n, detail::bool_<cache_last>());  }
 
-   BOOST_INTRUSIVE_FORCEINLINE static node_ptr get_last_node(detail::bool_<false>)
+   static node_ptr get_last_node(detail::bool_<false>)
    {
       //This function shall not be used if cache_last is not true
       BOOST_INTRUSIVE_INVARIANT_ASSERT(cache_last);
       return node_ptr();
    }
 
-   BOOST_INTRUSIVE_FORCEINLINE static void set_last_node(node_ptr , detail::bool_<false>)
+   static void set_last_node(const node_ptr &, detail::bool_<false>)
    {
       //This function shall not be used if cache_last is not true
       BOOST_INTRUSIVE_INVARIANT_ASSERT(cache_last);
    }
 
-   BOOST_INTRUSIVE_FORCEINLINE node_ptr get_last_node(detail::bool_<true>)
+   node_ptr get_last_node(detail::bool_<true>)
    {  return node_ptr(data_.root_plus_size_.last_);  }
 
-   BOOST_INTRUSIVE_FORCEINLINE const_node_ptr get_last_node(detail::bool_<true>) const
+   const_node_ptr get_last_node(detail::bool_<true>) const
    {  return const_node_ptr(data_.root_plus_size_.last_);  }
 
-   BOOST_INTRUSIVE_FORCEINLINE void set_last_node(node_ptr n, detail::bool_<true>)
+   void set_last_node(const node_ptr & n, detail::bool_<true>)
    {  data_.root_plus_size_.last_ = n;  }
 
    void set_default_constructed_state()
    {
       node_algorithms::init_header(this->get_root_node());
       this->priv_size_traits().set_size(size_type(0));
-      BOOST_IF_CONSTEXPR(cache_last){
+      if(cache_last){
          this->set_last_node(this->get_root_node());
       }
    }
@@ -241,22 +243,22 @@ class slist_impl
       root_plus_size root_plus_size_;
    } data_;
 
-   BOOST_INTRUSIVE_FORCEINLINE size_traits &priv_size_traits()
+   size_traits &priv_size_traits()
    {  return data_.root_plus_size_;  }
 
-   BOOST_INTRUSIVE_FORCEINLINE const size_traits &priv_size_traits() const
+   const size_traits &priv_size_traits() const
    {  return data_.root_plus_size_;  }
 
-   BOOST_INTRUSIVE_FORCEINLINE const value_traits &priv_value_traits() const
+   const value_traits &priv_value_traits() const
    {  return data_;  }
 
-   BOOST_INTRUSIVE_FORCEINLINE value_traits &priv_value_traits()
+   value_traits &priv_value_traits()
    {  return data_;  }
 
    typedef typename boost::intrusive::value_traits_pointers
       <ValueTraits>::const_value_traits_ptr const_value_traits_ptr;
 
-   BOOST_INTRUSIVE_FORCEINLINE const_value_traits_ptr priv_value_traits_ptr() const
+   const_value_traits_ptr priv_value_traits_ptr() const
    {  return pointer_traits<const_value_traits_ptr>::pointer_to(this->priv_value_traits());  }
 
    /// @endcond
@@ -280,13 +282,13 @@ class slist_impl
    //!   list. Iterators of this list and all the references are not invalidated.
    //!
    //! <b>Warning</b>: Experimental function, don't use it!
-   slist_impl( node_ptr f, node_ptr before_l
+   slist_impl( const node_ptr & f, const node_ptr & before_l
              , size_type n, const value_traits &v_traits = value_traits())
       :  data_(v_traits)
    {
       if(n){
          this->priv_size_traits().set_size(n);
-         BOOST_IF_CONSTEXPR(cache_last){
+         if(cache_last){
             this->set_last_node(before_l);
          }
          node_traits::set_next(this->get_root_node(), f);
@@ -369,7 +371,7 @@ class slist_impl
    //!   it's a safe-mode or auto-unlink value. Otherwise constant.
    ~slist_impl()
    {
-      BOOST_IF_CONSTEXPR(is_safe_autounlink<ValueTraits::link_mode>::value){
+      if(is_safe_autounlink<ValueTraits::link_mode>::value){
          this->clear();
          node_algorithms::init(this->get_root_node());
       }
@@ -383,9 +385,9 @@ class slist_impl
    //!   if it's a safe-mode or auto-unlink value_type. Constant time otherwise.
    //!
    //! <b>Note</b>: Invalidates the iterators (but not the references) to the erased elements.
-   void clear() BOOST_NOEXCEPT
+   void clear()
    {
-      BOOST_IF_CONSTEXPR(safemode_or_autounlink){
+      if(safemode_or_autounlink){
          this->clear_and_dispose(detail::null_disposer());
       }
       else{
@@ -404,12 +406,16 @@ class slist_impl
    //!
    //! <b>Note</b>: Invalidates the iterators to the erased elements.
    template <class Disposer>
-   void clear_and_dispose(Disposer disposer) BOOST_NOEXCEPT
+   void clear_and_dispose(Disposer disposer)
    {
-      node_algorithms::detach_and_dispose
-         ( this->get_root_node()
-         , detail::node_disposer<Disposer, value_traits, CommonSListAlgorithms>
-               (disposer, &this->priv_value_traits()) );
+      const_iterator it(this->begin()), itend(this->end());
+      while(it != itend){
+         node_ptr to_erase(it.pointed_node());
+         ++it;
+         if(safemode_or_autounlink)
+            node_algorithms::init(to_erase);
+         disposer(priv_value_traits().to_value_ptr(to_erase));
+      }
       this->set_default_constructed_state();
    }
 
@@ -423,11 +429,11 @@ class slist_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references.
-   void push_front(reference value) BOOST_NOEXCEPT
+   void push_front(reference value)
    {
       node_ptr to_insert = priv_value_traits().to_node_ptr(value);
       BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || node_algorithms::inited(to_insert));
-      BOOST_IF_CONSTEXPR(cache_last){
+      if(cache_last){
          if(this->empty()){
             this->set_last_node(to_insert);
          }
@@ -447,13 +453,13 @@ class slist_impl
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    //!   This function is only available is cache_last<> is true.
-   void push_back(reference value) BOOST_NOEXCEPT
+   void push_back(reference value)
    {
       BOOST_STATIC_ASSERT((cache_last));
       node_ptr n = priv_value_traits().to_node_ptr(value);
       BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || node_algorithms::inited(n));
       node_algorithms::link_after(this->get_last_node(), n);
-      BOOST_IF_CONSTEXPR(cache_last){
+      if(cache_last){
          this->set_last_node(n);
       }
       this->priv_size_traits().increment();
@@ -467,7 +473,7 @@ class slist_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Note</b>: Invalidates the iterators (but not the references) to the erased element.
-   void pop_front() BOOST_NOEXCEPT
+   void pop_front()
    {  return this->pop_front_and_dispose(detail::null_disposer());   }
 
    //! <b>Requires</b>: Disposer::operator()(pointer) shouldn't throw.
@@ -481,15 +487,15 @@ class slist_impl
    //!
    //! <b>Note</b>: Invalidates the iterators to the erased element.
    template<class Disposer>
-   void pop_front_and_dispose(Disposer disposer) BOOST_NOEXCEPT
+   void pop_front_and_dispose(Disposer disposer)
    {
       node_ptr to_erase = node_traits::get_next(this->get_root_node());
       node_algorithms::unlink_after(this->get_root_node());
       this->priv_size_traits().decrement();
-      BOOST_IF_CONSTEXPR(safemode_or_autounlink)
+      if(safemode_or_autounlink)
          node_algorithms::init(to_erase);
       disposer(priv_value_traits().to_value_ptr(to_erase));
-      BOOST_IF_CONSTEXPR(cache_last){
+      if(cache_last){
          if(this->empty()){
             this->set_last_node(this->get_root_node());
          }
@@ -501,7 +507,7 @@ class slist_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   BOOST_INTRUSIVE_FORCEINLINE reference front() BOOST_NOEXCEPT
+   reference front()
    { return *this->priv_value_traits().to_value_ptr(node_traits::get_next(this->get_root_node())); }
 
    //! <b>Effects</b>: Returns a const_reference to the first element of the list.
@@ -509,7 +515,7 @@ class slist_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   BOOST_INTRUSIVE_FORCEINLINE const_reference front() const BOOST_NOEXCEPT
+   const_reference front() const
    { return *this->priv_value_traits().to_value_ptr(detail::uncast(node_traits::get_next(this->get_root_node()))); }
 
    //! <b>Effects</b>: Returns a reference to the last element of the list.
@@ -520,7 +526,7 @@ class slist_impl
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    //!   This function is only available is cache_last<> is true.
-   reference back() BOOST_NOEXCEPT
+   reference back()
    {
       BOOST_STATIC_ASSERT((cache_last));
       return *this->priv_value_traits().to_value_ptr(this->get_last_node());
@@ -534,7 +540,7 @@ class slist_impl
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    //!   This function is only available is cache_last<> is true.
-   BOOST_INTRUSIVE_FORCEINLINE const_reference back() const BOOST_NOEXCEPT
+   const_reference back() const
    {
       BOOST_STATIC_ASSERT((cache_last));
       return *this->priv_value_traits().to_value_ptr(this->get_last_node());
@@ -545,7 +551,7 @@ class slist_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   BOOST_INTRUSIVE_FORCEINLINE iterator begin() BOOST_NOEXCEPT
+   iterator begin()
    { return iterator (node_traits::get_next(this->get_root_node()), this->priv_value_traits_ptr()); }
 
    //! <b>Effects</b>: Returns a const_iterator to the first element contained in the list.
@@ -553,7 +559,7 @@ class slist_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   BOOST_INTRUSIVE_FORCEINLINE const_iterator begin() const BOOST_NOEXCEPT
+   const_iterator begin() const
    { return const_iterator (node_traits::get_next(this->get_root_node()), this->priv_value_traits_ptr()); }
 
    //! <b>Effects</b>: Returns a const_iterator to the first element contained in the list.
@@ -561,7 +567,7 @@ class slist_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   BOOST_INTRUSIVE_FORCEINLINE const_iterator cbegin() const BOOST_NOEXCEPT
+   const_iterator cbegin() const
    { return const_iterator(node_traits::get_next(this->get_root_node()), this->priv_value_traits_ptr()); }
 
    //! <b>Effects</b>: Returns an iterator to the end of the list.
@@ -569,7 +575,7 @@ class slist_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   BOOST_INTRUSIVE_FORCEINLINE iterator end() BOOST_NOEXCEPT
+   iterator end()
    { return iterator(this->get_end_node(), this->priv_value_traits_ptr()); }
 
    //! <b>Effects</b>: Returns a const_iterator to the end of the list.
@@ -577,7 +583,7 @@ class slist_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   BOOST_INTRUSIVE_FORCEINLINE const_iterator end() const BOOST_NOEXCEPT
+   const_iterator end() const
    { return const_iterator(detail::uncast(this->get_end_node()), this->priv_value_traits_ptr()); }
 
    //! <b>Effects</b>: Returns a const_iterator to the end of the list.
@@ -585,7 +591,7 @@ class slist_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   BOOST_INTRUSIVE_FORCEINLINE const_iterator cend() const BOOST_NOEXCEPT
+   const_iterator cend() const
    { return this->end(); }
 
    //! <b>Effects</b>: Returns an iterator that points to a position
@@ -594,7 +600,7 @@ class slist_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   BOOST_INTRUSIVE_FORCEINLINE iterator before_begin() BOOST_NOEXCEPT
+   iterator before_begin()
    { return iterator(this->get_root_node(), this->priv_value_traits_ptr()); }
 
    //! <b>Effects</b>: Returns an iterator that points to a position
@@ -603,7 +609,7 @@ class slist_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   BOOST_INTRUSIVE_FORCEINLINE const_iterator before_begin() const BOOST_NOEXCEPT
+   const_iterator before_begin() const
    { return const_iterator(detail::uncast(this->get_root_node()), this->priv_value_traits_ptr()); }
 
    //! <b>Effects</b>: Returns an iterator that points to a position
@@ -612,7 +618,7 @@ class slist_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   BOOST_INTRUSIVE_FORCEINLINE const_iterator cbefore_begin() const BOOST_NOEXCEPT
+   const_iterator cbefore_begin() const
    { return this->before_begin(); }
 
    //! <b>Effects</b>: Returns an iterator to the last element contained in the list.
@@ -622,7 +628,7 @@ class slist_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Note</b>: This function is present only if cached_last<> option is true.
-   BOOST_INTRUSIVE_FORCEINLINE iterator last() BOOST_NOEXCEPT
+   iterator last()
    {
       //This function shall not be used if cache_last is not true
       BOOST_INTRUSIVE_INVARIANT_ASSERT(cache_last);
@@ -636,7 +642,7 @@ class slist_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Note</b>: This function is present only if cached_last<> option is true.
-   BOOST_INTRUSIVE_FORCEINLINE const_iterator last() const BOOST_NOEXCEPT
+   const_iterator last() const
    {
       //This function shall not be used if cache_last is not true
       BOOST_INTRUSIVE_INVARIANT_ASSERT(cache_last);
@@ -650,7 +656,7 @@ class slist_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Note</b>: This function is present only if cached_last<> option is true.
-   BOOST_INTRUSIVE_FORCEINLINE const_iterator clast() const BOOST_NOEXCEPT
+   const_iterator clast() const
    { return const_iterator(this->get_last_node(), this->priv_value_traits_ptr()); }
 
    //! <b>Precondition</b>: end_iterator must be a valid end iterator
@@ -661,7 +667,7 @@ class slist_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   BOOST_INTRUSIVE_FORCEINLINE static slist_impl &container_from_end_iterator(iterator end_iterator) BOOST_NOEXCEPT
+   static slist_impl &container_from_end_iterator(iterator end_iterator)
    {  return slist_impl::priv_container_from_end_iterator(end_iterator);   }
 
    //! <b>Precondition</b>: end_iterator must be a valid end const_iterator
@@ -672,7 +678,7 @@ class slist_impl
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   BOOST_INTRUSIVE_FORCEINLINE static const slist_impl &container_from_end_iterator(const_iterator end_iterator) BOOST_NOEXCEPT
+   static const slist_impl &container_from_end_iterator(const_iterator end_iterator)
    {  return slist_impl::priv_container_from_end_iterator(end_iterator);   }
 
    //! <b>Effects</b>: Returns the number of the elements contained in the list.
@@ -683,9 +689,9 @@ class slist_impl
    //!   if constant_time_size is false. Constant time otherwise.
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references.
-   BOOST_INTRUSIVE_FORCEINLINE size_type size() const BOOST_NOEXCEPT
+   size_type size() const
    {
-      BOOST_IF_CONSTEXPR(constant_time_size)
+      if(constant_time_size)
          return this->priv_size_traits().get_size();
       else
          return node_algorithms::count(this->get_root_node()) - 1;
@@ -698,8 +704,8 @@ class slist_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references.
-   BOOST_INTRUSIVE_FORCEINLINE bool empty() const BOOST_NOEXCEPT
-   {  return node_algorithms::is_empty(this->get_root_node()); }
+   bool empty() const
+   { return node_algorithms::unique(this->get_root_node()); }
 
    //! <b>Effects</b>: Swaps the elements of x and *this.
    //!
@@ -711,7 +717,7 @@ class slist_impl
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    void swap(slist_impl& other)
    {
-      BOOST_IF_CONSTEXPR(cache_last){
+      if(cache_last){
          priv_swap_cache_last(this, &other);
       }
       else{
@@ -729,7 +735,7 @@ class slist_impl
    //! <b>Complexity</b>: Linear to the number of elements plus the number shifts.
    //!
    //! <b>Note</b>: Iterators Does not affect the validity of iterators and references.
-   void shift_backwards(size_type n = 1) BOOST_NOEXCEPT
+   void shift_backwards(size_type n = 1)
    {  this->priv_shift_backwards(n, detail::bool_<linear>());  }
 
    //! <b>Effects</b>: Moves forward all the elements, so that the second
@@ -741,7 +747,7 @@ class slist_impl
    //! <b>Complexity</b>: Linear to the number of elements plus the number shifts.
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references.
-   void shift_forward(size_type n = 1) BOOST_NOEXCEPT
+   void shift_forward(size_type n = 1)
    {  this->priv_shift_forward(n, detail::bool_<linear>()); }
 
    //! <b>Requires</b>: Disposer::operator()(pointer) shouldn't throw.
@@ -813,7 +819,7 @@ class slist_impl
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references.
-   iterator insert_after(const_iterator prev_p, reference value) BOOST_NOEXCEPT
+   iterator insert_after(const_iterator prev_p, reference value)
    {
       node_ptr n = priv_value_traits().to_node_ptr(value);
       BOOST_INTRUSIVE_SAFE_HOOK_DEFAULT_ASSERT(!safemode_or_autounlink || node_algorithms::inited(n));
@@ -839,7 +845,7 @@ class slist_impl
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    template<class Iterator>
-   void insert_after(const_iterator prev_p, Iterator f, Iterator l) BOOST_NOEXCEPT
+   void insert_after(const_iterator prev_p, Iterator f, Iterator l)
    {
       //Insert first nodes avoiding cache and size checks
       size_type count = 0;
@@ -854,7 +860,7 @@ class slist_impl
       if(cache_last && (this->get_last_node() == prev_p.pointed_node())){
          this->set_last_node(prev_n);
       }
-      BOOST_IF_CONSTEXPR(constant_time_size){
+      if(constant_time_size){
          this->priv_size_traits().increase(count);
       }
    }
@@ -871,7 +877,7 @@ class slist_impl
    //!  Constant-time if cache_last<> is true and p == end().
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references.
-   iterator insert(const_iterator p, reference value) BOOST_NOEXCEPT
+   iterator insert(const_iterator p, reference value)
    {  return this->insert_after(this->previous(p), value);  }
 
    //! <b>Requires</b>: Dereferencing iterator must yield
@@ -889,7 +895,7 @@ class slist_impl
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    template<class Iterator>
-   void insert(const_iterator p, Iterator b, Iterator e) BOOST_NOEXCEPT
+   void insert(const_iterator p, Iterator b, Iterator e)
    {  return this->insert_after(this->previous(p), b, e);  }
 
    //! <b>Effects</b>: Erases the element after the element pointed by prev of
@@ -904,7 +910,7 @@ class slist_impl
    //!
    //! <b>Note</b>: Invalidates the iterators (but not the references) to the
    //!   erased element.
-   iterator erase_after(const_iterator prev) BOOST_NOEXCEPT
+   iterator erase_after(const_iterator prev)
    {  return this->erase_after_and_dispose(prev, detail::null_disposer());  }
 
    //! <b>Effects</b>: Erases the range (before_f, l) from
@@ -920,15 +926,15 @@ class slist_impl
    //!
    //! <b>Note</b>: Invalidates the iterators (but not the references) to the
    //!   erased element.
-   iterator erase_after(const_iterator before_f, const_iterator l) BOOST_NOEXCEPT
+   iterator erase_after(const_iterator before_f, const_iterator l)
    {
-      BOOST_IF_CONSTEXPR(safemode_or_autounlink || constant_time_size){
+      if(safemode_or_autounlink || constant_time_size){
          return this->erase_after_and_dispose(before_f, l, detail::null_disposer());
       }
       else{
          const node_ptr bfp = before_f.pointed_node();
          const node_ptr lp = l.pointed_node();
-         BOOST_IF_CONSTEXPR(cache_last){
+         if(cache_last){
             if(lp == this->get_end_node()){
                this->set_last_node(bfp);
             }
@@ -952,23 +958,22 @@ class slist_impl
    //!
    //! <b>Note</b>: Invalidates the iterators (but not the references) to the
    //!   erased element.
-   iterator erase_after(const_iterator before_f, const_iterator l, size_type n) BOOST_NOEXCEPT
+   iterator erase_after(const_iterator before_f, const_iterator l, size_type n)
    {
       BOOST_INTRUSIVE_INVARIANT_ASSERT(node_algorithms::distance((++const_iterator(before_f)).pointed_node(), l.pointed_node()) == n);
-      (void)n;
-      BOOST_IF_CONSTEXPR(safemode_or_autounlink){
+      if(safemode_or_autounlink){
          return this->erase_after(before_f, l);
       }
       else{
          const node_ptr bfp = before_f.pointed_node();
          const node_ptr lp = l.pointed_node();
-         BOOST_IF_CONSTEXPR(cache_last){
+         if(cache_last){
             if((lp == this->get_end_node())){
                this->set_last_node(bfp);
             }
          }
          node_algorithms::unlink_after(bfp, lp);
-         BOOST_IF_CONSTEXPR(constant_time_size){
+         if(constant_time_size){
             this->priv_size_traits().decrease(n);
          }
          return l.unconst();
@@ -987,7 +992,7 @@ class slist_impl
    //!
    //! <b>Note</b>: Invalidates the iterators (but not the references) to the
    //!   erased element.
-   iterator erase(const_iterator i) BOOST_NOEXCEPT
+   iterator erase(const_iterator i)
    {  return this->erase_after(this->previous(i));  }
 
    //! <b>Requires</b>: f and l must be valid iterator to elements in *this.
@@ -1004,7 +1009,7 @@ class slist_impl
    //!
    //! <b>Note</b>: Invalidates the iterators (but not the references) to the
    //!   erased elements.
-   iterator erase(const_iterator f, const_iterator l) BOOST_NOEXCEPT
+   iterator erase(const_iterator f, const_iterator l)
    {  return this->erase_after(this->previous(f), l);  }
 
    //! <b>Effects</b>: Erases the range [f, l) from
@@ -1021,7 +1026,7 @@ class slist_impl
    //!
    //! <b>Note</b>: Invalidates the iterators (but not the references) to the
    //!   erased element.
-   iterator erase(const_iterator f, const_iterator l, size_type n) BOOST_NOEXCEPT
+   iterator erase(const_iterator f, const_iterator l, size_type n)
    {  return this->erase_after(this->previous(f), l, n);  }
 
    //! <b>Requires</b>: Disposer::operator()(pointer) shouldn't throw.
@@ -1039,7 +1044,7 @@ class slist_impl
    //!
    //! <b>Note</b>: Invalidates the iterators to the erased element.
    template<class Disposer>
-   iterator erase_after_and_dispose(const_iterator prev, Disposer disposer) BOOST_NOEXCEPT
+   iterator erase_after_and_dispose(const_iterator prev, Disposer disposer)
    {
       const_iterator it(prev);
       ++it;
@@ -1050,7 +1055,7 @@ class slist_impl
       if(cache_last && (to_erase == this->get_last_node())){
          this->set_last_node(prev_n);
       }
-      BOOST_IF_CONSTEXPR(safemode_or_autounlink)
+      if(safemode_or_autounlink)
          node_algorithms::init(to_erase);
       disposer(priv_value_traits().to_value_ptr(to_erase));
       this->priv_size_traits().decrement();
@@ -1059,7 +1064,7 @@ class slist_impl
 
    /// @cond
 
-   static iterator s_insert_after(const_iterator const prev_p, reference value) BOOST_NOEXCEPT
+   static iterator s_insert_after(const_iterator const prev_p, reference value)
    {
       BOOST_STATIC_ASSERT(((!cache_last)&&(!constant_time_size)&&(!stateful_value_traits)));
       node_ptr const n = value_traits::to_node_ptr(value);
@@ -1069,7 +1074,7 @@ class slist_impl
    }
 
    template<class Disposer>
-   static iterator s_erase_after_and_dispose(const_iterator prev, Disposer disposer) BOOST_NOEXCEPT
+   static iterator s_erase_after_and_dispose(const_iterator prev, Disposer disposer)
    {
       BOOST_STATIC_ASSERT(((!cache_last)&&(!constant_time_size)&&(!stateful_value_traits)));
       const_iterator it(prev);
@@ -1078,14 +1083,14 @@ class slist_impl
       ++it;
       node_ptr prev_n(prev.pointed_node());
       node_algorithms::unlink_after(prev_n);
-      BOOST_IF_CONSTEXPR(safemode_or_autounlink)
+      if(safemode_or_autounlink)
          node_algorithms::init(to_erase);
       disposer(value_traits::to_value_ptr(to_erase));
       return it.unconst();
    }
 
    template<class Disposer>
-   static iterator s_erase_after_and_dispose(const_iterator before_f, const_iterator l, Disposer disposer) BOOST_NOEXCEPT
+   static iterator s_erase_after_and_dispose(const_iterator before_f, const_iterator l, Disposer disposer)
    {
       BOOST_STATIC_ASSERT(((!cache_last)&&(!constant_time_size)&&(!stateful_value_traits)));
       node_ptr bfp(before_f.pointed_node()), lp(l.pointed_node());
@@ -1094,14 +1099,14 @@ class slist_impl
       while(fp != lp){
          node_ptr to_erase(fp);
          fp = node_traits::get_next(fp);
-         BOOST_IF_CONSTEXPR(safemode_or_autounlink)
+         if(safemode_or_autounlink)
             node_algorithms::init(to_erase);
          disposer(value_traits::to_value_ptr(to_erase));
       }
       return l.unconst();
    }
 
-   static iterator s_erase_after(const_iterator prev) BOOST_NOEXCEPT
+   static iterator s_erase_after(const_iterator prev)
    {  return s_erase_after_and_dispose(prev, detail::null_disposer());  }
 
    /// @endcond
@@ -1121,7 +1126,7 @@ class slist_impl
    //!
    //! <b>Note</b>: Invalidates the iterators to the erased element.
    template<class Disposer>
-   iterator erase_after_and_dispose(const_iterator before_f, const_iterator l, Disposer disposer) BOOST_NOEXCEPT
+   iterator erase_after_and_dispose(const_iterator before_f, const_iterator l, Disposer disposer)
    {
       node_ptr bfp(before_f.pointed_node()), lp(l.pointed_node());
       node_ptr fp(node_traits::get_next(bfp));
@@ -1129,7 +1134,7 @@ class slist_impl
       while(fp != lp){
          node_ptr to_erase(fp);
          fp = node_traits::get_next(fp);
-         BOOST_IF_CONSTEXPR(safemode_or_autounlink)
+         if(safemode_or_autounlink)
             node_algorithms::init(to_erase);
          disposer(priv_value_traits().to_value_ptr(to_erase));
          this->priv_size_traits().decrement();
@@ -1156,12 +1161,12 @@ class slist_impl
    //! <b>Note</b>: Invalidates the iterators (but not the references) to the
    //!   erased element.
    template<class Disposer>
-   iterator erase_and_dispose(const_iterator i, Disposer disposer) BOOST_NOEXCEPT
+   iterator erase_and_dispose(const_iterator i, Disposer disposer)
    {  return this->erase_after_and_dispose(this->previous(i), disposer);  }
 
    #if !defined(BOOST_INTRUSIVE_DOXYGEN_INVOKED)
    template<class Disposer>
-   iterator erase_and_dispose(iterator i, Disposer disposer) BOOST_NOEXCEPT
+   iterator erase_and_dispose(iterator i, Disposer disposer)
    {  return this->erase_and_dispose(const_iterator(i), disposer);   }
    #endif
 
@@ -1183,7 +1188,7 @@ class slist_impl
    //! <b>Note</b>: Invalidates the iterators (but not the references) to the
    //!   erased elements.
    template<class Disposer>
-   iterator erase_and_dispose(const_iterator f, const_iterator l, Disposer disposer) BOOST_NOEXCEPT
+   iterator erase_and_dispose(const_iterator f, const_iterator l, Disposer disposer)
    {  return this->erase_after_and_dispose(this->previous(f), l, disposer);  }
 
    //! <b>Requires</b>: Dereferencing iterator must yield
@@ -1252,7 +1257,7 @@ class slist_impl
    //!   assigned to the last spliced element or prev if x is empty.
    //!   This iterator can be used as new "prev" iterator for a new splice_after call.
    //!   that will splice new values after the previously spliced values.
-   void splice_after(const_iterator prev, slist_impl &x, const_iterator *l = 0) BOOST_NOEXCEPT
+   void splice_after(const_iterator prev, slist_impl &x, const_iterator *l = 0)
    {
       if(x.empty()){
          if(l) *l = prev;
@@ -1265,7 +1270,7 @@ class slist_impl
          const_iterator last_x(x.previous(x.end()));  //constant time if cache_last is active
          node_ptr prev_n(prev.pointed_node());
          node_ptr last_x_n(last_x.pointed_node());
-         BOOST_IF_CONSTEXPR(cache_last){
+         if(cache_last){
             x.set_last_node(x.get_root_node());
             if(node_traits::get_next(prev_n) == this->get_end_node()){
                this->set_last_node(last_x_n);
@@ -1291,7 +1296,7 @@ class slist_impl
    //!
    //! <b>Note</b>: Iterators of values obtained from list x now point to elements of this
    //! list. Iterators of this list and all the references are not invalidated.
-   void splice_after(const_iterator prev_pos, slist_impl &x, const_iterator prev_ele) BOOST_NOEXCEPT
+   void splice_after(const_iterator prev_pos, slist_impl &x, const_iterator prev_ele)
    {
       const_iterator elem = prev_ele;
       this->splice_after(prev_pos, x, prev_ele, ++elem, 1);
@@ -1312,9 +1317,9 @@ class slist_impl
    //!
    //! <b>Note</b>: Iterators of values obtained from list x now point to elements of this
    //!   list. Iterators of this list and all the references are not invalidated.
-   void splice_after(const_iterator prev_pos, slist_impl &x, const_iterator before_f, const_iterator before_l) BOOST_NOEXCEPT
+   void splice_after(const_iterator prev_pos, slist_impl &x, const_iterator before_f, const_iterator before_l)
    {
-      BOOST_IF_CONSTEXPR(constant_time_size)
+      if(constant_time_size)
          this->splice_after(prev_pos, x, before_f, before_l, node_algorithms::distance(before_f.pointed_node(), before_l.pointed_node()));
       else
          this->priv_splice_after
@@ -1335,13 +1340,12 @@ class slist_impl
    //!
    //! <b>Note</b>: Iterators of values obtained from list x now point to elements of this
    //!   list. Iterators of this list and all the references are not invalidated.
-   void splice_after(const_iterator prev_pos, slist_impl &x, const_iterator before_f, const_iterator before_l, size_type n) BOOST_NOEXCEPT
+   void splice_after(const_iterator prev_pos, slist_impl &x, const_iterator before_f, const_iterator before_l, size_type n)
    {
       BOOST_INTRUSIVE_INVARIANT_ASSERT(node_algorithms::distance(before_f.pointed_node(), before_l.pointed_node()) == n);
-      (void)n;
       this->priv_splice_after
          (prev_pos.pointed_node(), x, before_f.pointed_node(), before_l.pointed_node());
-      BOOST_IF_CONSTEXPR(constant_time_size){
+      if(constant_time_size){
          this->priv_size_traits().increase(n);
          x.priv_size_traits().decrease(n);
       }
@@ -1368,7 +1372,7 @@ class slist_impl
    //!   assigned to the last spliced element or prev if x is empty.
    //!   This iterator can be used as new "prev" iterator for a new splice_after call.
    //!   that will splice new values after the previously spliced values.
-   void splice(const_iterator it, slist_impl &x, const_iterator *l = 0) BOOST_NOEXCEPT
+   void splice(const_iterator it, slist_impl &x, const_iterator *l = 0)
    {  this->splice_after(this->previous(it), x, l);   }
 
    //! <b>Requires</b>: it p must be a valid iterator of *this.
@@ -1385,7 +1389,7 @@ class slist_impl
    //!
    //! <b>Note</b>: Iterators of values obtained from list x now point to elements of this
    //! list. Iterators of this list and all the references are not invalidated.
-   void splice(const_iterator pos, slist_impl &x, const_iterator elem) BOOST_NOEXCEPT
+   void splice(const_iterator pos, slist_impl &x, const_iterator elem)
    {  return this->splice_after(this->previous(pos), x, x.previous(elem));  }
 
    //! <b>Requires</b>: pos must be a dereferenceable iterator in *this
@@ -1405,7 +1409,7 @@ class slist_impl
    //!
    //! <b>Note</b>: Iterators of values obtained from list x now point to elements of this
    //!   list. Iterators of this list and all the references are not invalidated.
-   void splice(const_iterator pos, slist_impl &x, const_iterator f, const_iterator l) BOOST_NOEXCEPT
+   void splice(const_iterator pos, slist_impl &x, const_iterator f, const_iterator l)
    {  return this->splice_after(this->previous(pos), x, x.previous(f), x.previous(l));  }
 
    //! <b>Requires</b>: pos must be a dereferenceable iterator in *this
@@ -1424,10 +1428,10 @@ class slist_impl
    //!
    //! <b>Note</b>: Iterators of values obtained from list x now point to elements of this
    //!   list. Iterators of this list and all the references are not invalidated.
-   void splice(const_iterator pos, slist_impl &x, const_iterator f, const_iterator l, size_type n) BOOST_NOEXCEPT
+   void splice(const_iterator pos, slist_impl &x, const_iterator f, const_iterator l, size_type n)
    {  return this->splice_after(this->previous(pos), x, x.previous(f), x.previous(l), n);  }
 
-   //! <b>Effects</b>: This function sorts the list *this according to operator<.
+   //! <b>Effects</b>: This function sorts the list *this according to std::less<value_type>.
    //!   The sort is stable, that is, the relative order of equivalent elements is preserved.
    //!
    //! <b>Throws</b>: If value_traits::node_traits::node
@@ -1459,7 +1463,7 @@ class slist_impl
             BOOST_INTRUSIVE_INVARIANT_ASSERT(counter[i].empty());
             const_iterator last_element(carry.previous(last_inserted, carry.end()));
 
-            BOOST_IF_CONSTEXPR(constant_time_size){
+            if(constant_time_size){
                counter[i].splice_after( counter[i].cbefore_begin(), carry
                                     , carry.cbefore_begin(), last_element
                                     , carry.size());
@@ -1476,7 +1480,7 @@ class slist_impl
             counter[i].merge(counter[i-1], p, &last_inserted);
          --fill;
          const_iterator last_element(counter[fill].previous(last_inserted, counter[fill].end()));
-         BOOST_IF_CONSTEXPR(constant_time_size){
+         if(constant_time_size){
             this->splice_after( cbefore_begin(), counter[fill], counter[fill].cbefore_begin()
                               , last_element, counter[fill].size());
          }
@@ -1497,14 +1501,14 @@ class slist_impl
    //!
    //! <b>Throws</b>: If value_traits::node_traits::node
    //!   constructor throws (this does not happen with predefined Boost.Intrusive hooks)
-   //!   or operator< throws. Basic guarantee.
+   //!   or std::less<value_type> throws. Basic guarantee.
    //!
    //! <b>Complexity</b>: This function is linear time: it performs at most
    //!   size() + x.size() - 1 comparisons.
    //!
    //! <b>Note</b>: Iterators and references are not invalidated.
    void sort()
-   { this->sort(value_less<value_type>()); }
+   { this->sort(std::less<value_type>()); }
 
    //! <b>Requires</b>: p must be a comparison function that induces a strict weak
    //!   ordering and both *this and x must be sorted according to that ordering
@@ -1553,18 +1557,18 @@ class slist_impl
    }
 
    //! <b>Effects</b>: This function removes all of x's elements and inserts them
-   //!   in order into *this according to operator<. The merge is stable;
+   //!   in order into *this according to std::less<value_type>. The merge is stable;
    //!   that is, if an element from *this is equivalent to one from x, then the element
    //!   from *this will precede the one from x.
    //!
-   //! <b>Throws</b>: if operator< throws. Basic guarantee.
+   //! <b>Throws</b>: if std::less<value_type> throws. Basic guarantee.
    //!
    //! <b>Complexity</b>: This function is linear time: it performs at most
    //!   size() + x.size() - 1 comparisons.
    //!
    //! <b>Note</b>: Iterators and references are not invalidated
    void merge(slist_impl& x)
-   {  this->merge(x, value_less<value_type>());  }
+   {  this->merge(x, std::less<value_type>());  }
 
    //! <b>Effects</b>: Reverses the order of elements in the list.
    //!
@@ -1573,7 +1577,7 @@ class slist_impl
    //! <b>Complexity</b>: This function is linear to the contained elements.
    //!
    //! <b>Note</b>: Iterators and references are not invalidated
-   void reverse() BOOST_NOEXCEPT
+   void reverse()
    {
       if(cache_last && !this->empty()){
          this->set_last_node(node_traits::get_next(this->get_root_node()));
@@ -1584,14 +1588,14 @@ class slist_impl
    //! <b>Effects</b>: Removes all the elements that compare equal to value.
    //!   No destructors are called.
    //!
-   //! <b>Throws</b>: If operator== throws. Basic guarantee.
+   //! <b>Throws</b>: If std::equal_to<value_type> throws. Basic guarantee.
    //!
    //! <b>Complexity</b>: Linear time. It performs exactly size() comparisons for equality.
    //!
    //! <b>Note</b>: The relative order of elements that are not removed is unchanged,
    //!   and iterators to elements that are not removed remain valid. This function is
    //!   linear time: it performs exactly size() comparisons for equality.
-   void remove(const_reference value) BOOST_NOEXCEPT
+   void remove(const_reference value)
    {  this->remove_if(detail::equal_to_value<const_reference>(value));  }
 
    //! <b>Requires</b>: Disposer::operator()(pointer) shouldn't throw.
@@ -1599,14 +1603,14 @@ class slist_impl
    //! <b>Effects</b>: Removes all the elements that compare equal to value.
    //!   Disposer::operator()(pointer) is called for every removed element.
    //!
-   //! <b>Throws</b>: If operator== throws. Basic guarantee.
+   //! <b>Throws</b>: If std::equal_to<value_type> throws. Basic guarantee.
    //!
    //! <b>Complexity</b>: Linear time. It performs exactly size() comparisons for equality.
    //!
    //! <b>Note</b>: The relative order of elements that are not removed is unchanged,
    //!   and iterators to elements that are not removed remain valid.
    template<class Disposer>
-   void remove_and_dispose(const_reference value, Disposer disposer) BOOST_NOEXCEPT
+   void remove_and_dispose(const_reference value, Disposer disposer)
    {  this->remove_and_dispose_if(detail::equal_to_value<const_reference>(value), disposer);  }
 
    //! <b>Effects</b>: Removes all the elements for which a specified
@@ -1626,7 +1630,7 @@ class slist_impl
       node_algorithms::stable_partition
          (bbeg, this->get_end_node(), detail::key_nodeptr_comp<Pred, value_traits>(pred, &this->priv_value_traits()), info);
       //After cache last is set, slist invariants are preserved...
-      BOOST_IF_CONSTEXPR(cache_last){
+      if(cache_last){
          this->set_last_node(info.new_last_node);
       }
       //...so erase can be safely called
@@ -1655,7 +1659,7 @@ class slist_impl
       node_algorithms::stable_partition
          (bbeg, this->get_end_node(), detail::key_nodeptr_comp<Pred, value_traits>(pred, &this->priv_value_traits()), info);
       //After cache last is set, slist invariants are preserved...
-      BOOST_IF_CONSTEXPR(cache_last){
+      if(cache_last){
          this->set_last_node(info.new_last_node);
       }
       //...so erase can be safely called
@@ -1667,14 +1671,14 @@ class slist_impl
    //! <b>Effects</b>: Removes adjacent duplicate elements or adjacent
    //!   elements that are equal from the list. No destructors are called.
    //!
-   //! <b>Throws</b>: If operator== throws. Basic guarantee.
+   //! <b>Throws</b>: If std::equal_to<value_type> throws. Basic guarantee.
    //!
    //! <b>Complexity</b>: Linear time (size()-1) comparisons calls to pred()).
    //!
    //! <b>Note</b>: The relative order of elements that are not removed is unchanged,
    //!   and iterators to elements that are not removed remain valid.
    void unique()
-   {  this->unique_and_dispose(value_equal<value_type>(), detail::null_disposer());  }
+   {  this->unique_and_dispose(std::equal_to<value_type>(), detail::null_disposer());  }
 
    //! <b>Effects</b>: Removes adjacent duplicate elements or adjacent
    //!   elements that satisfy some binary predicate from the list.
@@ -1696,7 +1700,7 @@ class slist_impl
    //!   elements that satisfy some binary predicate from the list.
    //!   Disposer::operator()(pointer) is called for every removed element.
    //!
-   //! <b>Throws</b>: If operator== throws. Basic guarantee.
+   //! <b>Throws</b>: If std::equal_to<value_type> throws. Basic guarantee.
    //!
    //! <b>Complexity</b>: Linear time (size()-1) comparisons equality comparisons.
    //!
@@ -1704,7 +1708,7 @@ class slist_impl
    //!   and iterators to elements that are not removed remain valid.
    template<class Disposer>
    void unique_and_dispose(Disposer disposer)
-   {  this->unique(value_equal<value_type>(), disposer);  }
+   {  this->unique(std::equal_to<value_type>(), disposer);  }
 
    //! <b>Requires</b>: Disposer::operator()(pointer) shouldn't throw.
    //!
@@ -1735,7 +1739,7 @@ class slist_impl
                ++cur;
             }
          }
-         BOOST_IF_CONSTEXPR(cache_last){
+         if(cache_last){
             this->set_last_node(bcur.pointed_node());
          }
       }
@@ -1752,7 +1756,7 @@ class slist_impl
    //! <b>Note</b>: Iterators and references are not invalidated.
    //!   This static function is available only if the <i>value traits</i>
    //!   is stateless.
-   static iterator s_iterator_to(reference value) BOOST_NOEXCEPT
+   static iterator s_iterator_to(reference value)
    {
       BOOST_STATIC_ASSERT((!stateful_value_traits));
       return iterator (value_traits::to_node_ptr(value), const_value_traits_ptr());
@@ -1769,7 +1773,7 @@ class slist_impl
    //! <b>Note</b>: Iterators and references are not invalidated.
    //!   This static function is available only if the <i>value traits</i>
    //!   is stateless.
-   static const_iterator s_iterator_to(const_reference value) BOOST_NOEXCEPT
+   static const_iterator s_iterator_to(const_reference value)
    {
       BOOST_STATIC_ASSERT((!stateful_value_traits));
       reference r =*detail::uncast(pointer_traits<const_pointer>::pointer_to(value));
@@ -1785,7 +1789,7 @@ class slist_impl
    //! <b>Complexity</b>: Constant time.
    //!
    //! <b>Note</b>: Iterators and references are not invalidated.
-   iterator iterator_to(reference value) BOOST_NOEXCEPT
+   iterator iterator_to(reference value)
    {
       BOOST_INTRUSIVE_INVARIANT_ASSERT(linear || !node_algorithms::inited(this->priv_value_traits().to_node_ptr(value)));
       return iterator (this->priv_value_traits().to_node_ptr(value), this->priv_value_traits_ptr());
@@ -1800,7 +1804,7 @@ class slist_impl
    //! <b>Complexity</b>: Constant time.
    //!
    //! <b>Note</b>: Iterators and references are not invalidated.
-   const_iterator iterator_to(const_reference value) const BOOST_NOEXCEPT
+   const_iterator iterator_to(const_reference value) const
    {
       reference r =*detail::uncast(pointer_traits<const_pointer>::pointer_to(value));
       BOOST_INTRUSIVE_INVARIANT_ASSERT (linear || !node_algorithms::inited(this->priv_value_traits().to_node_ptr(r)));
@@ -1815,7 +1819,7 @@ class slist_impl
    //!
    //! <b>Complexity</b>: Linear to the number of elements before i.
    //!   Constant if cache_last<> is true and i == end().
-   iterator previous(iterator i) BOOST_NOEXCEPT
+   iterator previous(iterator i)
    {  return this->previous(this->cbefore_begin(), i); }
 
    //! <b>Returns</b>: The const_iterator to the element before i in the list.
@@ -1826,7 +1830,7 @@ class slist_impl
    //!
    //! <b>Complexity</b>: Linear to the number of elements before i.
    //!   Constant if cache_last<> is true and i == end().
-   const_iterator previous(const_iterator i) const BOOST_NOEXCEPT
+   const_iterator previous(const_iterator i) const
    {  return this->previous(this->cbefore_begin(), i); }
 
    //! <b>Returns</b>: The iterator to the element before i in the list,
@@ -1838,7 +1842,7 @@ class slist_impl
    //!
    //! <b>Complexity</b>: Linear to the number of elements before i.
    //!   Constant if cache_last<> is true and i == end().
-   iterator previous(const_iterator prev_from, iterator i) BOOST_NOEXCEPT
+   iterator previous(const_iterator prev_from, iterator i)
    {  return this->previous(prev_from, const_iterator(i)).unconst(); }
 
    //! <b>Returns</b>: The const_iterator to the element before i in the list,
@@ -1850,7 +1854,7 @@ class slist_impl
    //!
    //! <b>Complexity</b>: Linear to the number of elements before i.
    //!   Constant if cache_last<> is true and i == end().
-   const_iterator previous(const_iterator prev_from, const_iterator i) const BOOST_NOEXCEPT
+   const_iterator previous(const_iterator prev_from, const_iterator i) const
    {
       if(cache_last && (i.pointed_node() == this->get_end_node())){
          return const_iterator(detail::uncast(this->get_last_node()), this->priv_value_traits_ptr());
@@ -1878,9 +1882,9 @@ class slist_impl
    //!   point to elements of this list. Iterators of this list and all the references are not invalidated.
    //!
    //! <b>Warning</b>: Experimental function, don't use it!
-   void incorporate_after(const_iterator prev_pos, node_ptr f, node_ptr before_l) BOOST_NOEXCEPT
+   void incorporate_after(const_iterator prev_pos, const node_ptr & f, const node_ptr & before_l)
    {
-      BOOST_IF_CONSTEXPR(constant_time_size)
+      if(constant_time_size)
          this->incorporate_after(prev_pos, f, before_l, node_algorithms::distance(f.pointed_node(), before_l.pointed_node())+1);
       else
          this->priv_incorporate_after(prev_pos.pointed_node(), f, before_l);
@@ -1902,7 +1906,7 @@ class slist_impl
    //!   point to elements of this list. Iterators of this list and all the references are not invalidated.
    //!
    //! <b>Warning</b>: Experimental function, don't use it!
-   void incorporate_after(const_iterator prev_pos, node_ptr f, node_ptr before_l, size_type n) BOOST_NOEXCEPT
+   void incorporate_after(const_iterator prev_pos, const node_ptr & f, const node_ptr & before_l, size_type n)
    {
       if(n){
          BOOST_INTRUSIVE_INVARIANT_ASSERT(n > 0);
@@ -1912,7 +1916,7 @@ class slist_impl
                , iterator(before_l, this->priv_value_traits_ptr())))
             +1 == n);
          this->priv_incorporate_after(prev_pos.pointed_node(), f, before_l);
-         BOOST_IF_CONSTEXPR(constant_time_size){
+         if(constant_time_size){
             this->priv_size_traits().increase(n);
          }
       }
@@ -1933,7 +1937,8 @@ class slist_impl
       BOOST_INTRUSIVE_INVARIANT_ASSERT(node_traits::get_next(header_ptr));
       if (node_traits::get_next(header_ptr) == header_ptr)
       {
-         BOOST_INTRUSIVE_INVARIANT_ASSERT(!constant_time_size || this->priv_size_traits().get_size() == 0);
+         if (constant_time_size)
+            BOOST_INTRUSIVE_INVARIANT_ASSERT(this->priv_size_traits().get_size() == 0);
          return;
       }
       size_t node_count = 0;
@@ -1941,7 +1946,7 @@ class slist_impl
       while (true)
       {
          const_node_ptr next_p = node_traits::get_next(p);
-         BOOST_IF_CONSTEXPR(!linear)
+         if (!linear)
          {
             BOOST_INTRUSIVE_INVARIANT_ASSERT(next_p);
          }
@@ -1951,13 +1956,15 @@ class slist_impl
          }
          if ((!linear && next_p == header_ptr) || (linear && !next_p))
          {
-            BOOST_INTRUSIVE_INVARIANT_ASSERT(!cache_last || get_last_node() == p);
+            if (cache_last)
+               BOOST_INTRUSIVE_INVARIANT_ASSERT(get_last_node() == p);
             break;
          }
          p = next_p;
          ++node_count;
       }
-      BOOST_INTRUSIVE_INVARIANT_ASSERT(!constant_time_size || this->priv_size_traits().get_size() == node_count);
+      if (constant_time_size)
+         BOOST_INTRUSIVE_INVARIANT_ASSERT(this->priv_size_traits().get_size() == node_count);
    }
 
 
@@ -2003,7 +2010,7 @@ class slist_impl
 
    void priv_incorporate_after(node_ptr prev_pos_n, node_ptr first_n, node_ptr before_l_n)
    {
-      BOOST_IF_CONSTEXPR(cache_last){
+      if(cache_last){
          if(prev_pos_n == this->get_last_node()){
             this->set_last_node(before_l_n);
          }
@@ -2031,12 +2038,12 @@ class slist_impl
 
    void priv_shift_backwards(size_type n, detail::bool_<true>)
    {
-      typename node_algorithms::node_pair ret(
+      std::pair<node_ptr, node_ptr> ret(
          node_algorithms::move_first_n_forward
             (node_traits::get_next(this->get_root_node()), (std::size_t)n));
       if(ret.first){
          node_traits::set_next(this->get_root_node(), ret.first);
-         BOOST_IF_CONSTEXPR(cache_last){
+         if(cache_last){
             this->set_last_node(ret.second);
          }
       }
@@ -2052,12 +2059,12 @@ class slist_impl
 
    void priv_shift_forward(size_type n, detail::bool_<true>)
    {
-      typename node_algorithms::node_pair ret(
+      std::pair<node_ptr, node_ptr> ret(
          node_algorithms::move_first_n_backwards
          (node_traits::get_next(this->get_root_node()), (std::size_t)n));
       if(ret.first){
          node_traits::set_next(this->get_root_node(), ret.first);
-         BOOST_IF_CONSTEXPR(cache_last){
+         if(cache_last){
             this->set_last_node(ret.second);
          }
       }
@@ -2205,7 +2212,7 @@ class slist
 
    struct incorporate_t{};
 
-   BOOST_INTRUSIVE_FORCEINLINE slist( node_ptr f, node_ptr before_l
+   BOOST_INTRUSIVE_FORCEINLINE slist( const node_ptr & f, const node_ptr & before_l
              , size_type n, const value_traits &v_traits = value_traits())
       :  Base(f, before_l, n, v_traits)
    {}
@@ -2230,10 +2237,10 @@ class slist
    BOOST_INTRUSIVE_FORCEINLINE void clone_from(BOOST_RV_REF(slist) src, Cloner cloner, Disposer disposer)
    {  Base::clone_from(BOOST_MOVE_BASE(Base, src), cloner, disposer);  }
 
-   BOOST_INTRUSIVE_FORCEINLINE static slist &container_from_end_iterator(iterator end_iterator) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static slist &container_from_end_iterator(iterator end_iterator)
    {  return static_cast<slist &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const slist &container_from_end_iterator(const_iterator end_iterator) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static const slist &container_from_end_iterator(const_iterator end_iterator)
    {  return static_cast<const slist &>(Base::container_from_end_iterator(end_iterator));   }
 };
 

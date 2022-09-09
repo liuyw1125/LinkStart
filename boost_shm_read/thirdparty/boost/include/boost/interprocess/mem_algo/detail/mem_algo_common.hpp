@@ -35,8 +35,6 @@
 #include <boost/container/detail/placement_new.hpp>
 // move
 #include <boost/move/utility_core.hpp>
-// move/detail
-#include <boost/move/detail/force_ptr.hpp>
 // other boost
 #include <boost/static_assert.hpp>
 #include <boost/assert.hpp>
@@ -291,10 +289,10 @@ class memory_algorithm_common
             max_value(ceil_units(nbytes) + AllocatedCtrlUnits, size_type(MinBlockUnits));
          //We can create a new block in the end of the segment
          if(old_size >= (first_min_units + MinBlockUnits)){
-            block_ctrl *second =  move_detail::force_ptr<block_ctrl*>
+            block_ctrl *second =  reinterpret_cast<block_ctrl *>
                (reinterpret_cast<char*>(first) + Alignment*first_min_units);
-            first->m_size  = first_min_units & block_ctrl::size_mask;
-            second->m_size = (old_size - first->m_size) & block_ctrl::size_mask;
+            first->m_size  = first_min_units;
+            second->m_size = old_size - first->m_size;
             BOOST_ASSERT(second->m_size >= MinBlockUnits);
             memory_algo->priv_mark_new_allocated_block(first);
             memory_algo->priv_mark_new_allocated_block(second);
@@ -328,8 +326,7 @@ class memory_algorithm_common
              (reinterpret_cast<char*>(first) + first->m_size*Alignment));
       //Set the new size of the first block
       size_type old_size = first->m_size;
-      first->m_size = size_type(size_type(reinterpret_cast<char*>(second) - reinterpret_cast<char*>(first))/Alignment
-                        & block_ctrl::size_mask);
+      first->m_size  = (size_type)(reinterpret_cast<char*>(second) - reinterpret_cast<char*>(first))/Alignment;
       memory_algo->priv_mark_new_allocated_block(first);
 
       //Now check if we can create a new buffer in the end
@@ -349,15 +346,15 @@ class memory_algorithm_common
       if((old_size - first->m_size) >= (second_min_units + MinBlockUnits)){
          //Now obtain the address of the end block
          block_ctrl *third = new (reinterpret_cast<char*>(second) + Alignment*second_min_units)block_ctrl;
-         second->m_size = second_min_units & block_ctrl::size_mask;
-         third->m_size  = (old_size - first->m_size - second->m_size) & block_ctrl::size_mask;
+         second->m_size = second_min_units;
+         third->m_size  = old_size - first->m_size - second->m_size;
          BOOST_ASSERT(third->m_size >= MinBlockUnits);
          memory_algo->priv_mark_new_allocated_block(second);
          memory_algo->priv_mark_new_allocated_block(third);
          memory_algo->priv_deallocate(memory_algo->priv_get_user_buffer(third));
       }
       else{
-         second->m_size = (old_size - first->m_size) & block_ctrl::size_mask;
+         second->m_size = old_size - first->m_size;
          BOOST_ASSERT(second->m_size >= MinBlockUnits);
          memory_algo->priv_mark_new_allocated_block(second);
       }
@@ -440,15 +437,15 @@ class memory_algorithm_common
          return true;
 
       //Now we can just rewrite the size of the old buffer
-      block->m_size = ((received_size-UsableByPreviousChunk)/Alignment + AllocatedCtrlUnits) & block_ctrl::size_mask;
+      block->m_size = (received_size-UsableByPreviousChunk)/Alignment + AllocatedCtrlUnits;
       BOOST_ASSERT(block->m_size >= BlockCtrlUnits);
 
       //We create the new block
-      block_ctrl *new_block = move_detail::force_ptr<block_ctrl*>
+      block_ctrl *new_block = reinterpret_cast<block_ctrl*>
                   (reinterpret_cast<char*>(block) + block->m_size*Alignment);
       //Write control data to simulate this new block was previously allocated
       //and deallocate it
-      new_block->m_size = (old_block_units - block->m_size) & block_ctrl::size_mask;
+      new_block->m_size = old_block_units - block->m_size;
       BOOST_ASSERT(new_block->m_size >= BlockCtrlUnits);
       memory_algo->priv_mark_new_allocated_block(block);
       memory_algo->priv_mark_new_allocated_block(new_block);
@@ -523,7 +520,7 @@ class memory_algorithm_common
                   break;
                total_request_units -= elem_units;
                //This is the position where the new block must be created
-               block_ctrl *new_block = move_detail::force_ptr<block_ctrl*>(block_address);
+               block_ctrl *new_block = reinterpret_cast<block_ctrl *>(block_address);
                assert_alignment(new_block);
 
                //The last block should take all the remaining space
@@ -534,7 +531,7 @@ class memory_algorithm_common
                : max_value(memory_algo->priv_get_total_units(elem_sizes[low_idx+1]*sizeof_element), ptr_size_units))
                    > received_units)){
                   //By default, the new block will use the rest of the buffer
-                  new_block->m_size = (received_units - total_used_units) & block_ctrl::size_mask;
+                  new_block->m_size = received_units - total_used_units;
                   memory_algo->priv_mark_new_allocated_block(new_block);
 
                   //If the remaining units are bigger than needed and we can
@@ -560,7 +557,7 @@ class memory_algorithm_common
                   }
                }
                else{
-                  new_block->m_size = elem_units & block_ctrl::size_mask;
+                  new_block->m_size = elem_units;
                   memory_algo->priv_mark_new_allocated_block(new_block);
                }
 

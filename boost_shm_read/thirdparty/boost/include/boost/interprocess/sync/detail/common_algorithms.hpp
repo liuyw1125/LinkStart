@@ -23,17 +23,16 @@
 #include <boost/interprocess/detail/workaround.hpp>
 
 #include <boost/interprocess/sync/spin/wait.hpp>
-#include <boost/interprocess/detail/timed_utils.hpp>
 
 namespace boost {
 namespace interprocess {
 namespace ipcdetail {
 
-template<class MutexType, class TimePoint>
-bool try_based_timed_lock(MutexType &m, const TimePoint &abs_time)
+template<class MutexType>
+bool try_based_timed_lock(MutexType &m, const boost::posix_time::ptime &abs_time)
 {
    //Same as lock()
-   if(is_pos_infinity(abs_time)){
+   if(abs_time == boost::posix_time::pos_infin){
       m.lock();
       return true;
    }
@@ -46,7 +45,7 @@ bool try_based_timed_lock(MutexType &m, const TimePoint &abs_time)
    }
    else{
       spin_wait swait;
-      while(microsec_clock<TimePoint>::universal_time() < abs_time){
+      while(microsec_clock::universal_time() < abs_time){
          if(m.try_lock()){
             return true;
          }
@@ -74,19 +73,46 @@ void try_based_lock(MutexType &m)
 }
 
 template<class MutexType>
-void timeout_when_locking_aware_lock(MutexType &m)
+void timed_based_lock(MutexType &m, unsigned const uCheckPeriodSec)
 {
-   #ifdef BOOST_INTERPROCESS_ENABLE_TIMEOUT_WHEN_LOCKING
-      if (!m.timed_lock(microsec_clock<ustime>::universal_time()
-           + usduration_milliseconds(BOOST_INTERPROCESS_TIMEOUT_WHEN_LOCKING_DURATION_MS)))
-      {
-         throw interprocess_exception(timeout_when_locking_error
-                                     , "Interprocess mutex timeout when locking. Possible deadlock: "
-                                       "owner died without unlocking?");
+   const boost::posix_time::time_duration dur(0, 0, uCheckPeriodSec);
+   boost::posix_time::ptime deadline(microsec_clock::universal_time()+dur);
+   if(!m.timed_lock(deadline)){
+      spin_wait swait;
+      do{
+         deadline = microsec_clock::universal_time()+dur;
+         if(m.timed_lock(deadline)){
+            break;
+         }
+         else{
+            swait.yield();
+         }
       }
-   #else
-      m.lock();
-   #endif
+      while(1);
+   }
+}
+
+template<class MutexType>
+void timed_based_timed_lock(MutexType &m, const boost::posix_time::ptime &abs_time, unsigned const uCheckPeriodSec)
+{
+   const boost::posix_time::time_duration dur(0, 0, uCheckPeriodSec);
+   boost::posix_time::ptime deadline(microsec_clock::universal_time()+dur);
+   if(abs_time <= deadline){
+      m.timed_lock(abs_time);
+   }
+   else if(!m.timed_lock(deadline)){
+      spin_wait swait;
+      do{
+         deadline = microsec_clock::universal_time()+dur;
+         if(m.timed_lock(deadline)){
+            break;
+         }
+         else{
+            swait.yield();
+         }
+      }
+      while(1);
+   }
 }
 
 }  //namespace ipcdetail

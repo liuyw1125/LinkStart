@@ -26,7 +26,7 @@ namespace boost {
 namespace interprocess {
 
 #if !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
-using boost::container::allocation_type;
+typedef int allocation_type;
 #endif   //#ifndef BOOST_INTERPROCESS_DOXYGEN_INVOKED
 static const allocation_type allocate_new       = boost::container::allocate_new;
 static const allocation_type expand_fwd         = boost::container::expand_fwd;

@@ -42,7 +42,7 @@ class bstree_algorithms_base
    //! <b>Complexity</b>: Average constant time.
    //!
    //! <b>Throws</b>: Nothing.
-   static node_ptr next_node(node_ptr node) BOOST_NOEXCEPT
+   static node_ptr next_node(const node_ptr & node)
    {
       node_ptr const n_right(NodeTraits::get_right(node));
       if(n_right){
@@ -66,10 +66,11 @@ class bstree_algorithms_base
    //! <b>Complexity</b>: Average constant time.
    //!
    //! <b>Throws</b>: Nothing.
-   static node_ptr prev_node(node_ptr node) BOOST_NOEXCEPT
+   static node_ptr prev_node(const node_ptr & node)
    {
       if(is_header(node)){
-         return NodeTraits::get_right(node);
+         //return NodeTraits::get_right(node);
+         return maximum(NodeTraits::get_parent(node));
       }
       else if(NodeTraits::get_left(node)){
          return maximum(NodeTraits::get_left(node));
@@ -126,7 +127,7 @@ class bstree_algorithms_base
    //! <b>Complexity</b>: Constant.
    //!
    //! <b>Throws</b>: Nothing.
-   static bool is_header(const_node_ptr p) BOOST_NOEXCEPT
+   static bool is_header(const const_node_ptr & p)
    {
       node_ptr p_left (NodeTraits::get_left(p));
       node_ptr p_right(NodeTraits::get_right(p));
@@ -150,7 +151,7 @@ class bstree_algorithms_base
    //! <b>Complexity</b>: Logarithmic.
    //!
    //! <b>Throws</b>: Nothing.
-   static node_ptr get_header(const_node_ptr node)
+   static node_ptr get_header(const const_node_ptr & node)
    {
       node_ptr n(detail::uncast(node));
       node_ptr p(NodeTraits::get_parent(node));

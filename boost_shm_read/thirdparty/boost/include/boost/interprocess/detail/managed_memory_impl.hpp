@@ -110,48 +110,48 @@ class basic_managed_memory_impl
    typedef basic_managed_memory_impl
                <CharType, MemoryAlgorithm, IndexType, Offset> self_t;
    protected:
-   template<class ManagedMemory, class CharT>
-   static bool grow(const CharT *filename, size_type extra_bytes)
+   template<class ManagedMemory>
+   static bool grow(const char *filename, size_type extra_bytes)
    {
       typedef typename ManagedMemory::device_type device_type;
       //Increase file size
-      BOOST_TRY{
+      try{
          offset_t old_size;
          {
             device_type f(open_or_create, filename, read_write);
             if(!f.get_size(old_size))
                return false;
-            f.truncate(old_size + static_cast<offset_t>(extra_bytes));
+            f.truncate(old_size + extra_bytes);
          }
          ManagedMemory managed_memory(open_only, filename);
          //Grow always works
          managed_memory.self_t::grow(extra_bytes);
       }
-      BOOST_CATCH(...){
+      catch(...){
          return false;
-      } BOOST_CATCH_END
+      }
       return true;
    }
 
-   template<class ManagedMemory, class CharT>
-   static bool shrink_to_fit(const CharT *filename)
+   template<class ManagedMemory>
+   static bool shrink_to_fit(const char *filename)
    {
       typedef typename ManagedMemory::device_type device_type;
       size_type new_size;
-      BOOST_TRY{
+      try{
          ManagedMemory managed_memory(open_only, filename);
          managed_memory.get_size();
          managed_memory.self_t::shrink_to_fit();
          new_size = managed_memory.get_size();
       }
-      BOOST_CATCH(...){
+      catch(...){
          return false;
-      } BOOST_CATCH_END
+      }
 
       //Decrease file size
       {
          device_type f(open_or_create, filename, read_write);
-         f.truncate(static_cast<offset_t>(new_size));
+         f.truncate(new_size);
       }
       return true;
    }
@@ -177,12 +177,12 @@ class basic_managed_memory_impl
       //throw if constructor allocates memory. So we must catch it.
       BOOST_TRY{
          //Let's construct the allocator in memory
-         BOOST_ASSERT((0 == (std::size_t)addr % boost::move_detail::alignment_of<segment_manager>::value));
          mp_header       = ::new(addr, boost_container_new_t()) segment_manager(size);
       }
       BOOST_CATCH(...){
          return false;
-      } BOOST_CATCH_END
+      }
+      BOOST_CATCH_END
       return true;
    }
 

@@ -19,7 +19,7 @@
 #include <boost/intrusive/detail/common_slist_algorithms.hpp>
 #include <boost/intrusive/detail/algo_type.hpp>
 #include <cstddef>
-#include <boost/intrusive/detail/twin.hpp>   //for node_pair
+#include <boost/intrusive/detail/minimal_pair_header.hpp>   //std::pair
 
 #if defined(BOOST_HAS_PRAGMA_ONCE)
 #  pragma once
@@ -62,12 +62,6 @@ class linear_slist_algorithms
    typedef typename NodeTraits::node_ptr        node_ptr;
    typedef typename NodeTraits::const_node_ptr  const_node_ptr;
    typedef NodeTraits                           node_traits;
-   //A simple struct containing:
-   //
-   // typedef node_ptr type;
-   // node_ptr first;
-   // node_ptr second;
-   typedef twin<node_ptr>                  node_pair;
 
    #if defined(BOOST_INTRUSIVE_DOXYGEN_INVOKED)
 
@@ -78,7 +72,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Constant
    //!
    //! <b>Throws</b>: Nothing.
-   static void init(node_ptr this_node) BOOST_NOEXCEPT;
+   static void init(const node_ptr & this_node);
 
    //! <b>Requires</b>: this_node must be in a circular list or be an empty circular list.
    //!
@@ -89,7 +83,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Constant
    //!
    //! <b>Throws</b>: Nothing.
-   static bool unique(const_node_ptr this_node) BOOST_NOEXCEPT;
+   static bool unique(const_node_ptr this_node);
 
    //! <b>Effects</b>: Returns true is "this_node" has the same state as if
    //!  it was inited using "init(node_ptr)"
@@ -97,7 +91,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Constant
    //!
    //! <b>Throws</b>: Nothing.
-   static bool inited(const_node_ptr this_node) BOOST_NOEXCEPT;
+   static bool inited(const_node_ptr this_node);
 
    //! <b>Requires</b>: prev_node must be in a circular list or be an empty circular list.
    //!
@@ -106,7 +100,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Constant
    //!
    //! <b>Throws</b>: Nothing.
-   static void unlink_after(node_ptr prev_node) BOOST_NOEXCEPT;
+   static void unlink_after(const node_ptr & prev_node);
 
    //! <b>Requires</b>: prev_node and last_node must be in a circular list
    //!  or be an empty circular list.
@@ -116,7 +110,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Constant
    //!
    //! <b>Throws</b>: Nothing.
-   static void unlink_after(node_ptr prev_node, node_ptr last_node) BOOST_NOEXCEPT;
+   static void unlink_after(const node_ptr & prev_node, const node_ptr & last_node);
 
    //! <b>Requires</b>: prev_node must be a node of a linear list.
    //!
@@ -125,7 +119,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Constant
    //!
    //! <b>Throws</b>: Nothing.
-   static void link_after(node_ptr prev_node, node_ptr this_node) BOOST_NOEXCEPT;
+   static void link_after(const node_ptr & prev_node, const node_ptr & this_node);
 
    //! <b>Requires</b>: b and e must be nodes of the same linear list or an empty range.
    //!   and p must be a node of a different linear list.
@@ -136,11 +130,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Constant
    //!
    //! <b>Throws</b>: Nothing.
-   static void transfer_after(node_ptr p, node_ptr b, node_ptr e) BOOST_NOEXCEPT;
-
-   #else
-
-   using base_t::transfer_after;
+   static void transfer_after(const node_ptr & p, const node_ptr & b, const node_ptr & e);
 
    #endif   //#if defined(BOOST_INTRUSIVE_DOXYGEN_INVOKED)
 
@@ -151,43 +141,8 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Constant
    //!
    //! <b>Throws</b>: Nothing.
-   BOOST_INTRUSIVE_FORCEINLINE static void init_header(node_ptr this_node) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static void init_header(const node_ptr & this_node)
    {  NodeTraits::set_next(this_node, node_ptr ());  }
-
-   //! <b>Requires</b>: 'p' is the first node of a list.
-   //!
-   //! <b>Effects</b>: Returns a pointer to a node that represents the "end" (one past end) node
-   //!
-   //! <b>Complexity</b>: Constant time.
-   //!
-   //! <b>Throws</b>: Nothing.
-   BOOST_INTRUSIVE_FORCEINLINE static node_ptr end_node(const_node_ptr) BOOST_NOEXCEPT
-   {  return node_ptr();   }
-
-   //! <b>Effects</b>: Returns true if this_node_points to an empty list.
-   //! 
-   //! <b>Complexity</b>: Constant
-   //!
-   //! <b>Throws</b>: Nothing.
-   BOOST_INTRUSIVE_FORCEINLINE static bool is_empty(const_node_ptr this_node) BOOST_NOEXCEPT
-   {  return !NodeTraits::get_next(this_node);  }
-
-   //! <b>Effects</b>: Returns true if this_node points to a sentinel node.
-   //! 
-   //! <b>Complexity</b>: Constant
-   //!
-   //! <b>Throws</b>: Nothing.
-   BOOST_INTRUSIVE_FORCEINLINE static bool is_sentinel(const_node_ptr this_node) BOOST_NOEXCEPT
-   {  return NodeTraits::get_next(this_node) == this_node;  }
-
-   //! <b>Effects</b>: Marks this node as a "sentinel" node, a special state that is different from "empty",
-   //!                 that can be used to mark a special state of the list
-   //!
-   //! <b>Complexity</b>: Constant
-   //!
-   //! <b>Throws</b>: Nothing.
-   BOOST_INTRUSIVE_FORCEINLINE static void set_sentinel(node_ptr this_node) BOOST_NOEXCEPT
-   {  NodeTraits::set_next(this_node, this_node);   }
 
    //! <b>Requires</b>: this_node and prev_init_node must be in the same linear list.
    //!
@@ -198,8 +153,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Linear to the number of elements between prev_init_node and this_node.
    //!
    //! <b>Throws</b>: Nothing.
-   BOOST_INTRUSIVE_FORCEINLINE static node_ptr
-      get_previous_node(node_ptr prev_init_node, node_ptr this_node) BOOST_NOEXCEPT
+   BOOST_INTRUSIVE_FORCEINLINE static node_ptr get_previous_node(const node_ptr & prev_init_node, const node_ptr & this_node)
    {  return base_t::get_previous_node(prev_init_node, this_node);   }
 
    //! <b>Requires</b>: this_node must be in a linear list or be an empty linear list.
@@ -210,7 +164,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Linear
    //!
    //! <b>Throws</b>: Nothing.
-   static std::size_t count(const_node_ptr this_node) BOOST_NOEXCEPT
+   static std::size_t count(const const_node_ptr & this_node)
    {
       std::size_t result = 0;
       const_node_ptr p = this_node;
@@ -230,7 +184,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Constant
    //!
    //! <b>Throws</b>: Nothing.
-   BOOST_INTRUSIVE_FORCEINLINE static void swap_trailing_nodes(node_ptr this_node, node_ptr other_node) BOOST_NOEXCEPT
+   static void swap_trailing_nodes(node_ptr this_node, node_ptr other_node)
    {
       node_ptr this_nxt    = NodeTraits::get_next(this_node);
       node_ptr other_nxt   = NodeTraits::get_next(other_node);
@@ -245,7 +199,7 @@ class linear_slist_algorithms
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: This function is linear to the contained elements.
-   static node_ptr reverse(node_ptr p) BOOST_NOEXCEPT
+   static node_ptr reverse(node_ptr p)
    {
       if(!p) return node_ptr();
       node_ptr i = NodeTraits::get_next(p);
@@ -268,9 +222,9 @@ class linear_slist_algorithms
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Linear to the number of elements plus the number moved positions.
-   static node_pair move_first_n_backwards(node_ptr p, std::size_t n) BOOST_NOEXCEPT
+   static std::pair<node_ptr, node_ptr> move_first_n_backwards(node_ptr p, std::size_t n)
    {
-      node_pair ret;
+      std::pair<node_ptr, node_ptr> ret;
       //Null shift, or count() == 0 or 1, nothing to do
       if(!n || !p || !NodeTraits::get_next(p)){
          return ret;
@@ -323,9 +277,9 @@ class linear_slist_algorithms
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Linear to the number of elements plus the number moved positions.
-   static node_pair move_first_n_forward(node_ptr p, std::size_t n) BOOST_NOEXCEPT
+   static std::pair<node_ptr, node_ptr> move_first_n_forward(node_ptr p, std::size_t n)
    {
-      node_pair ret;
+      std::pair<node_ptr, node_ptr> ret;
       //Null shift, or count() == 0 or 1, nothing to do
       if(!n || !p || !NodeTraits::get_next(p))
          return ret;
@@ -368,40 +322,6 @@ class linear_slist_algorithms
       ret.second  = new_last;
       return ret;
    }
-
-   //! <b>Requires</b>: other must be a list and p must be a node of a different linear list.
-   //!
-   //! <b>Effects</b>: Transfers all nodes from other after p in p's linear list.
-   //!
-   //! <b>Complexity</b>: Linear
-   //!
-   //! <b>Throws</b>: Nothing.
-   static void transfer_after(node_ptr p, node_ptr other) BOOST_NOEXCEPT
-   {
-      if ((is_empty)(p)) {
-         (swap_trailing_nodes)(p, other);
-      }
-      else {
-         node_ptr other_last((get_previous_node)(other, node_ptr()));
-         base_t::transfer_after(p, other, other_last);
-      }
-   }
-
-   //! <b>Requires</b>: "disposer" must be an object function
-   //!   taking a node_ptr parameter and shouldn't throw.
-   //!
-   //! <b>Effects</b>: Unlinks all nodes reachable from p (but not p) and calls
-   //!   <tt>void disposer::operator()(node_ptr)</tt> for every node of the list
-   //!    where p is linked.
-   //!
-   //! <b>Returns</b>: The number of disposed nodes
-   //!
-   //! <b>Complexity</b>: Linear to the number of element of the list.
-   //!
-   //! <b>Throws</b>: Nothing.
-   template<class Disposer>
-   BOOST_INTRUSIVE_FORCEINLINE static std::size_t detach_and_dispose(node_ptr p, Disposer disposer) BOOST_NOEXCEPT
-   {  return base_t::unlink_after_and_dispose(p, node_ptr(), disposer);   }
 };
 
 /// @cond

@@ -321,12 +321,22 @@ void Log::SetErrorStringFilter(
 void Log::get_timestamp(
         std::string& timestamp)
 {
+    /*
     std::stringstream stream;
     auto now = std::chrono::system_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(now);
     std::chrono::system_clock::duration tp = now.time_since_epoch();
     tp -= std::chrono::duration_cast<std::chrono::seconds>(tp);
     auto ms = static_cast<unsigned>(tp / std::chrono::milliseconds(1));
+    auto us = static_cast<unsigned>(tp / std::chrono::microseconds(1));
+     */
+
+    std::stringstream stream1;
+    auto now1 = std::chrono::high_resolution_clock::now();
+    std::time_t now_c1 = std::chrono::high_resolution_clock::to_time_t(now1);
+    std::chrono::high_resolution_clock::duration tp1 = now1.time_since_epoch();
+    tp1 -= std::chrono::duration_cast<std::chrono::seconds>(tp1);
+    auto ns = static_cast<unsigned>(tp1 / std::chrono::nanoseconds(1));
 
 #if defined(_WIN32)
     struct tm timeinfo;
@@ -336,9 +346,12 @@ void Log::get_timestamp(
     //    (void)now_c;
     //    (void)ms;
 #else
-    stream << std::put_time(localtime(&now_c), "%F %T") << "." << std::setw(3) << std::setfill('0') << ms << " ";
+    //stream << std::put_time(localtime(&now_c), "%F %T") << "." << std::setw(3) << std::setfill('0') << ms << " ";
+    //stream << std::put_time(localtime(&now_c), "%F %T") << "."<< us << " ";
+    stream1 << std::put_time(localtime(&now_c1), "%F %T") << "."<< ns << " ";
 #endif // if defined(_WIN32)
-    timestamp = stream.str();
+    //timestamp = stream.str();
+    timestamp = stream1.str();
 }
 
 void LogConsumer::print_timestamp(

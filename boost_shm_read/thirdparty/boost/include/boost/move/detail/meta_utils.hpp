@@ -21,7 +21,6 @@
 #include <boost/move/detail/workaround.hpp>  //forceinline
 #include <boost/move/detail/meta_utils_core.hpp>
 #include <cstddef>   //for std::size_t
-#include <boost/move/detail/addressof.hpp>
 
 //Small meta-typetraits to support move
 
@@ -57,8 +56,8 @@ struct apply
 template< bool C_ >
 struct bool_ : integral_constant<bool, C_>
 {
-   BOOST_MOVE_FORCEINLINE operator bool() const { return C_; }
-   BOOST_MOVE_FORCEINLINE bool operator()() const { return C_; }
+     operator bool() const { return C_; }
+   bool operator()() const { return C_; }
 };
 
 typedef bool_<true>        true_;
@@ -70,10 +69,6 @@ typedef bool_<false>       false_;
 struct nat{};
 struct nat2{};
 struct nat3{};
-
-template <unsigned N>
-struct natN
-{};
 
 //////////////////////////////////////
 //          yes_type/no_type
@@ -225,7 +220,7 @@ struct identity
 {
    typedef T type;
    typedef typename add_const_lvalue_reference<T>::type reference;
-   BOOST_MOVE_FORCEINLINE reference operator()(reference t) const
+   reference operator()(reference t)
    {  return t;   }
 };
 
@@ -246,7 +241,36 @@ struct is_class_or_union
 //////////////////////////////////////
 //             addressof
 //////////////////////////////////////
+template<class T>
+struct addr_impl_ref
+{
+   T & v_;
+   BOOST_MOVE_FORCEINLINE addr_impl_ref( T & v ): v_( v ) {}
+   BOOST_MOVE_FORCEINLINE operator T& () const { return v_; }
 
+   private:
+   addr_impl_ref & operator=(const addr_impl_ref &);
+};
+
+template<class T>
+struct addressof_impl
+{
+   BOOST_MOVE_FORCEINLINE static T * f( T & v, long )
+   {
+      return reinterpret_cast<T*>(
+         &const_cast<char&>(reinterpret_cast<const volatile char &>(v)));
+   }
+
+   BOOST_MOVE_FORCEINLINE static T * f( T * v, int )
+   {  return v;  }
+};
+
+template<class T>
+BOOST_MOVE_FORCEINLINE T * addressof( T & v )
+{
+   return ::boost::move_detail::addressof_impl<T>::f
+      ( ::boost::move_detail::addr_impl_ref<T>( v ), 0 );
+}
 
 //////////////////////////////////////
 //          has_pointer_type

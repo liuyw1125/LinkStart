@@ -128,6 +128,7 @@ namespace date_time {
         _m = _m - y.number_of_years() * 12;
         return *this;
       }
+
       //
       BOOST_CXX14_CONSTEXPR friend date_type operator+(const date_type& d, const months_type& m)
       {
@@ -147,6 +148,7 @@ namespace date_time {
         // get_neg_offset returns a negative duration, so we add
         return d += m.get_neg_offset(d);
       }
+        
     private:
       int_rep _m;
   };
@@ -238,6 +240,7 @@ namespace date_time {
       {
         return(months_type(_y * 12 - m.number_of_months()));
       }
+
       //
       BOOST_CXX14_CONSTEXPR friend date_type operator+(const date_type& d, const years_type& y)
       {
@@ -257,9 +260,11 @@ namespace date_time {
         // get_neg_offset returns a negative duration, so we add
         return d += y.get_neg_offset(d);
       }
+
     private:
       int_rep _y;
   };
+
 }} // namespace boost::date_time
 
 #endif // DATE_DURATION_TYPES_HPP___
